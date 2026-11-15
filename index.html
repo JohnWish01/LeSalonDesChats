@@ -506,6 +506,14 @@ function snore(c){
   const ex = noiseBurst(a, t2, d, 'lowpass', 400, .6, .025);
   ex.frequency.setValueAtTime(600, t2); ex.frequency.linearRampToValueAtTime(250, t2 + d);
 }
+/* the cardboard box: a hollow "bonk" and a papery rustle, a bit longer when climbing in */
+function boxSound(enter){
+  if (!ready()) return; const a = actx, t = a.currentTime;
+  noiseBurst(a, t, .14, 'bandpass', 240, 5, enter ? .22 : .15);
+  const n = enter ? 5 : 3;
+  for (let k = 0; k < n; k++) noiseBurst(a, t + .05 + k * rand(.05, .09), rand(.05, .09), 'bandpass', rand(700, 1300), 1.1, rand(.05, .08));
+  box.shakeUntil = performance.now() + 450;
+}
 function swat(){
   if (!ready()) return; const a = actx, t = actx.currentTime;
   noiseBurst(a, t, .08, 'lowpass', 900, 1, .12); noiseBurst(a, t + .01, .03, 'highpass', 3000, 1, .05);
@@ -824,11 +832,11 @@ function update(c, dt){
       break;
     }
     case 'tobox':
-      if (moveTo(c, box.x, box.y + 1, 55, dt)){ setState(c, 'box', rand(6, 12)); c.dir = Math.random() < .5 ? -1 : 1; say(c, 'Mrrp'); }
+      if (moveTo(c, box.x, box.y + 1, 55, dt)){ setState(c, 'box', rand(6, 12)); c.dir = Math.random() < .5 ? -1 : 1; boxSound(true); say(c, 'Mrrp'); }
       break;
     case 'box':
       c.timer -= dt; c.energy = Math.min(100, c.energy + dt * 2);
-      if (c.timer <= 0){ c.y = box.y + 16 * scaleAt(box.y); setState(c, 'idle', rand(2, 4)); }
+      if (c.timer <= 0){ c.y = box.y + 16 * scaleAt(box.y); setState(c, 'idle', rand(2, 4)); boxSound(false); }
       break;
     case 'ball': {
       c.timer += dt; c.batCd -= dt;
@@ -1125,7 +1133,8 @@ function drawTree(){
 
 function drawBox(){
   const s = scaleAt(box.y), oc = box.occupant && box.occupant.state === 'box' ? box.occupant : null;
-  ctx.save(); ctx.translate(box.x, box.y); ctx.scale(s, s);
+  const shake = Math.max(0, (box.shakeUntil || 0) - performance.now()) / 450;
+  ctx.save(); ctx.translate(box.x, box.y); ctx.scale(s, s); ctx.rotate(Math.sin(performance.now() / 28) * .07 * shake);
   ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(0, 2, 44, 8, 0, 0, Math.PI * 2); ctx.fill();
   blob('#7d4f2a', () => { ctx.moveTo(-36, -34); ctx.lineTo(-28, -44); ctx.lineTo(28, -44); ctx.lineTo(36, -34); ctx.closePath(); });
   if (oc){ ctx.save(); ctx.scale(oc.dir, 1); head(oc.coat, 0, -44, 14, oc.lazy > .5 && oc.timer > 3); ctx.restore(); }
@@ -1305,7 +1314,7 @@ cv.addEventListener('pointerdown', e => {
   if (tool === 'pet'){
     const bs = scaleAt(box.y), oc = box.occupant;
     if (oc && oc.state === 'box' && Math.abs(p.x - box.x) < 50 * bs && p.y < box.y + 4 && p.y > box.y - 64 * bs){
-      oc.y = box.y + 16 * bs; setState(oc, 'idle', 2.5); say(oc, 'Mrrp !'); oc.happy = Math.min(100, oc.happy + 4);
+      oc.y = box.y + 16 * bs; setState(oc, 'idle', 2.5); boxSound(false); say(oc, 'Mrrp !'); oc.happy = Math.min(100, oc.happy + 4);
       return;
     }
     const c = catAt(p); if (c){ pet(c, p.x); return; }
