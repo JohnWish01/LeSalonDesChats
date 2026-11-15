@@ -54,7 +54,8 @@ chaque amélioration du jeu profite aux trois.
 |---|---|---|
 | Node.js | Lancer Capacitor et les scripts | Installé |
 | Git | Envoyer le code sur GitHub | Installé |
-| Android Studio (JDK + SDK Android inclus) | Compiler et tester l'app Android | À installer |
+| Android Studio (avec son JDK intégré) | Compiler et tester l'app Android | Installé |
+| SDK Android | Les briques d'Android pour compiler | Se télécharge au premier lancement d'Android Studio (assistant de configuration, licences à accepter) |
 | Un téléphone Android en mode développeur, ou l'émulateur d'Android Studio | Tester l'app | Au choix |
 | Mac + Xcode | Compiler l'app iPhone | Impossible sous Windows (voir plus haut) |
 
