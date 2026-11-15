@@ -566,6 +566,24 @@ function hungrySound(c){
   o.start(t2); l.start(t2); o.stop(t2 + d + .05); l.stop(t2 + d + .05);
 }
 let lastHungerHint = -1e9;
+/* a thirsty cat: a short, slightly raspy meow, then dry little tongue clicks ("mlem mlem") */
+function thirstySound(c){
+  if (!ready() || !c) return;
+  const a = actx, t = a.currentTime, v = c.voice, p = v.pitch, d = .3 * v.len;
+  voiceNote(a, v, t, d, p * 1.1);
+  noiseBurst(a, t, d, 'bandpass', 2000 * p, 1.5, .03);
+  for (let k = 0; k < 3; k++){
+    const tt = t + d + .1 + k * rand(.11, .15), o = a.createOscillator(), g = a.createGain();
+    o.type = 'sine'; o.frequency.setValueAtTime(950 * p, tt); o.frequency.exponentialRampToValueAtTime(520 * p, tt + .03);
+    g.gain.setValueAtTime(0, tt); g.gain.linearRampToValueAtTime(.06, tt + .003); g.gain.exponentialRampToValueAtTime(.001, tt + .04);
+    o.connect(g).connect(a.destination); o.start(tt); o.stop(tt + .05);
+    noiseBurst(a, tt, .025, 'highpass', 3000, .8, .04);
+  }
+}
+function thirsty(c){
+  c.bubble = pick(['Mlem mlem…', 'Soif…', 'De l’eau ?']); c.bubbleT = 1.8;
+  thirstySound(c);
+}
 function swat(){
   if (!ready()) return; const a = actx, t = actx.currentTime;
   noiseBurst(a, t, .08, 'lowpass', 900, 1, .12); noiseBurst(a, t + .01, .03, 'highpass', 3000, 1, .05);
@@ -773,7 +791,11 @@ function update(c, dt){
   c.thirst = Math.min(100, c.thirst + dt * (.8 + (c.state === 'eat' && !c.moving ? 2 : 0)));
   if ((c.state === 'idle' || c.state === 'wander') && c.thirst > 60){
     const i = fountain.users.findIndex(u => !u);
-    if (i >= 0){ fountain.users[i] = c; c.fspot = i; setState(c, 'todrink'); }
+    if (i >= 0){ fountain.users[i] = c; c.fspot = i; setState(c, 'todrink'); thirsty(c); }
+    else if (c.thirst > 80){
+      c.thirstT = (c.thirstT ?? 0) - dt;
+      if (c.thirstT <= 0){ c.thirstT = rand(4, 7); thirsty(c); }
+    }
   }
   if (c.bladder >= 100 && !c.onTree && !['box', 'tolitter', 'litter'].includes(c.state)){
     const s = scaleAt(c.y);
