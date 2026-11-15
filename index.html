@@ -514,6 +514,20 @@ function boxSound(enter){
   for (let k = 0; k < n; k++) noiseBurst(a, t + .05 + k * rand(.05, .09), rand(.05, .09), 'bandpass', rand(700, 1300), 1.1, rand(.05, .08));
   box.shakeUntil = performance.now() + 450;
 }
+/* sulking: an annoyed huff through the nose, then a low grumbling "mmrrmph" that sinks */
+function sulk(c){
+  if (!ready()) return;
+  const a = actx, t = a.currentTime, p = c ? c.voice.pitch : 1;
+  noiseBurst(a, t, .22, 'lowpass', 900, .7, .09);
+  const t2 = t + .18, d = rand(.45, .6);
+  const o = a.createOscillator(), f = a.createBiquadFilter(), g = a.createGain(), l = a.createOscillator(), lg = a.createGain();
+  o.type = 'sawtooth'; o.frequency.setValueAtTime(310 * p, t2); o.frequency.exponentialRampToValueAtTime(170 * p, t2 + d);
+  l.frequency.value = 14; lg.gain.value = 10 * p; l.connect(lg).connect(o.frequency);
+  f.type = 'lowpass'; f.frequency.setValueAtTime(900 * p, t2); f.frequency.linearRampToValueAtTime(450 * p, t2 + d); f.Q.value = 3;
+  g.gain.setValueAtTime(0, t2); g.gain.linearRampToValueAtTime(.1, t2 + .06); g.gain.setValueAtTime(.09, t2 + d * .6); g.gain.exponentialRampToValueAtTime(.001, t2 + d);
+  o.connect(f).connect(g).connect(a.destination);
+  o.start(t2); l.start(t2); o.stop(t2 + d + .05); l.stop(t2 + d + .05);
+}
 function swat(){
   if (!ready()) return; const a = actx, t = actx.currentTime;
   noiseBurst(a, t, .08, 'lowpass', 900, 1, .12); noiseBurst(a, t + .01, .03, 'highpass', 3000, 1, .05);
@@ -614,7 +628,11 @@ function say(c, t, d = 1.8){
   else if (t.startsWith('Ss') || t.startsWith('Kss')) hiss();
   else if (t.startsWith('Slurp') || t.startsWith('Glou')){ lap(c); setTimeout(() => lap(c), 120); }
   else if (t.startsWith('Prrrr') || t === 'Mrrrou') purr(c.voice.pitch);
-  else if (t.startsWith('Pfff')) hiss();
+  else if (t.startsWith('Pfff') || t.startsWith('Hmpf') || t.startsWith('Bof')){
+    sulk(c);
+    const s = catScale(c);
+    for (let i = 0; i < 3; i++) fx.push({x: c.x + c.dir * rand(30, 40) * s, y: c.y - rand(34, 44) * s, vx: c.dir * rand(20, 45), vy: rand(-12, 4), life: .7, size: rand(7, 11) * s, ch: '●', col: 'rgba(225,225,235,.6)'});
+  }
   else if (t.startsWith('!') || t.length <= 5) meow(c, 'short');
   else if (t.startsWith('Miaa') || t.startsWith('Bonjour') || t.endsWith('…')) meow(c, 'long');
   else if (t !== 'Pfiou…') meow(c);
