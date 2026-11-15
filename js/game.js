@@ -32,8 +32,8 @@ function newGameState(){
   const d = new Date();
   return {
     v: 2, coins: 60, earned: 0, day: 1, dayPhase: (d.getHours() + d.getMinutes() / 60) / 24,
-    inv: {bowl1: 1, water1: 1, litter1: 1, box: 1, mouse: 1, lamp1: 1, rug1: 1},
-    food: {croq: 10, premium: 0, patee: 0}, care: {treat: 3, catnip: 0, vitamins: 0, kit: 0}, brush: false,
+    inv: {},
+    food: {croq: 0, premium: 0, patee: 0}, care: {treat: 0, catnip: 0, vitamins: 0, kit: 0}, brush: false,
     coats: ['roux', 'noir', 'gris', 'blanc'], rooms: ['salon'], room: 'salon', ach: {}, adoptions: 0, uid: 1,
     stats: {pets: 0, fills: 0, cleans: 0, separations: 0, placed: 0, birds: 0, heals: 0, patee: 0, brushes: 0, perfectDays: 0, accidentsToday: 0, fightsToday: 0},
     cats: [], placed: [], soundOn: true
@@ -680,7 +680,7 @@ function step(dt){
   if (essentialsT <= 0 && !buildMode){
     essentialsT = 30;
     const miss = [['bowl', 'une gamelle'], ['water', 'de l’eau'], ['litter', 'une litière']].filter(([k]) => !ofKind(k).length).map(x => x[1]);
-    if (miss.length && G.cats.length) showHint(`Il manque ${miss.join(', ')} dans la pièce. Clique sur Aménager pour les placer.`, 6000);
+    if (miss.length && G.cats.length) showHint(`Il manque ${miss.join(', ')} dans la pièce. Achète-les à la boutique, puis place-les avec Aménager.`, 6000);
   }
   for (let i = fx.length - 1; i >= 0; i--){ const p = fx[i]; p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt; if (p.life <= 0) fx.splice(i, 1); }
 }

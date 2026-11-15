@@ -105,7 +105,7 @@ function renderBuildBar(){
   const types = ITEM_LIST.filter(d => (G.inv[d.id] || 0) > 0);
   $('buildList').innerHTML = types.length
     ? types.map(d => `<button class="inv${buildPick === d.id ? ' on' : ''}" data-pick="${d.id}" title="${esc(d.desc)}"><canvas width="72" height="54"></canvas><span>${esc(d.name)}</span><em>×${G.inv[d.id]}</em></button>`).join('')
-    : '<p class="muted">Tout est déjà placé. La boutique a plein d’autres objets !</p>';
+    : `<p class="muted">${G.placed.length ? 'Tout est déjà placé. La boutique a plein d’autres objets !' : 'Ton inventaire est vide : achète des objets à la boutique pour les placer ici.'}</p>`;
   $('buildList').querySelectorAll('[data-pick]').forEach(b => renderItemPreview(b.querySelector('canvas'), b.dataset.pick));
   $('btnStore').disabled = !selected;
   $('selName').textContent = selected ? ITEMS[selected.type].name : 'aucun';
@@ -362,8 +362,9 @@ function adoptFromCreator(){
   closeModal(); renderRoster(); saveGame();
   setTimeout(() => say(c, 'Bonjour ? Miaou !', 2.5), 300);
   if (cr.first){
-    toggleBuild(true);
-    setTimeout(() => showHint(`Bienvenue ${name} ! La pièce est vide : place une gamelle, de l’eau et une litière, puis clique sur Terminer.`, 9000), 400);
+    toast(`Bienvenue ${name} !`, `La pièce est vide. Avec tes ${G.coins} ${COIN}, achète une gamelle, de l’eau, une litière et des croquettes.`);
+    setTimeout(() => openShop('meubles'), 600);
+    setTimeout(() => showHint('Achète l’essentiel à la boutique, puis place tes objets avec le bouton Aménager.', 9000), 700);
   } else toast('Nouveau chat !', `${name} a rejoint la famille.`);
 }
 
