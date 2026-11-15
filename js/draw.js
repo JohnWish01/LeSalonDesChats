@@ -320,6 +320,26 @@ function drawLamp(o, lit){
 }
 const lampHead = o => o.type === 'lamp1' ? -132 : -66;
 
+/* La radio rétro : haut-parleur, cadran, boutons, antenne. Elle sautille quand elle joue. */
+function drawRadio(o){
+  const on = typeof radio !== 'undefined' && radio.playing, st = on ? RADIO_STATIONS.find(s => s.id === radio.station) : null, t = now();
+  shadow(28, 5);
+  if (on) ctx.translate(0, -Math.abs(Math.sin(t * (st ? st.tempo : 4))) * 1.5);
+  ctx.strokeStyle = '#2a2025'; ctx.lineWidth = 1.6; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(10, -36); ctx.lineTo(22, -60); ctx.stroke();
+  blob('#c9d3da', ell(22, -61, 2.5, 2.5));
+  blob('#8a5a34', () => ctx.roundRect(-27, -38, 54, 36, 7));
+  blob('#e9dcc6', () => ctx.roundRect(-23, -33, 22, 26, 5));
+  ctx.strokeStyle = 'rgba(80,50,30,.5)'; ctx.lineWidth = 1;
+  for (let y = -30; y < -9; y += 3.5){ ctx.beginPath(); ctx.moveTo(-21, y); ctx.lineTo(-3, y); ctx.stroke(); }
+  blob(on ? '#fff3c4' : '#d8cdb8', () => ctx.roundRect(2, -33, 21, 11, 3));
+  ctx.strokeStyle = st ? st.color : '#c23a4e'; ctx.lineWidth = 1.6;
+  const nx = 4 + (st ? RADIO_STATIONS.indexOf(st) / 4 : .3) * 17;
+  ctx.beginPath(); ctx.moveTo(nx, -32); ctx.lineTo(nx, -23); ctx.stroke();
+  blob('#5a3a22', ell(7, -14, 3.6, 3.6)); blob('#5a3a22', ell(17, -14, 3.6, 3.6));
+  if (on){ ctx.fillStyle = st ? st.color : '#5ad16a'; ctx.beginPath(); ctx.arc(23, -14, 1.6, 0, Math.PI * 2); ctx.fill(); }
+}
+
 /* Touffe de poils (perte de poils) ou boule de poils crachée. */
 function drawFur(f, x, y, s){
   ctx.save(); ctx.translate(x, y); ctx.scale(s * f.r, s * f.r);
@@ -362,6 +382,7 @@ function drawItemAt(o, x, y, s, lit){
     case 'rug': drawRug(o); break;
     case 'plant': drawPlant(o); break;
     case 'lamp': drawLamp(o, lit); break;
+    case 'radio': drawRadio(o); break;
   }
   ctx.restore();
 }

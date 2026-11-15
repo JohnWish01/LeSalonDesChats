@@ -100,6 +100,7 @@ function renderRoster(){
   if (!G) return;
   const room = roomById(G.room);
   $('rosterTitle').textContent = `Tes chats (${G.cats.length}/${room.maxCats})`;
+  $('btnRadio').hidden = !ofKind('radio').length;
   $('roster').innerHTML = G.cats.length ? G.cats.map((c, i) => {
     const [m, k] = mood(c);
     return `<li data-sheet="${i}" tabindex="0" role="button" aria-label="Fiche de ${esc(c.name)}"><span class="sw" style="background:${c.coat.base}"></span><div class="who"><b>${esc(c.name)}${c.kitten ? ' <em class="kit">chaton</em>' : ''}</b><small>${esc(c.coat.label)} · ${esc(traitById(c.traitId).label)} · voix ${esc(voiceDef(c.voice).label.toLowerCase())}</small></div><span class="mood ${k}">${m}</span><button class="listen" data-cat="${i}" aria-label="Écouter ${esc(c.name)}" title="Écouter ${esc(c.name)}">♪</button>
@@ -266,6 +267,7 @@ function onDown(e){
     }
   }
   if (tool !== 'laser' && pickFur(p)) return;
+  if (tool !== 'laser'){ const o = hitInst(p); if (o && kindOf(o) === 'radio' && !catAt(p)){ openRadio(); return; } }
   if (tool === 'laser'){ laser.on = true; laser.x = p.x; laser.y = p.y; cv.setPointerCapture(e.pointerId); return; }
   if (tool === 'food'){ const o = hitInst(p); if (o && kindOf(o) === 'bowl') fillBowl(o); else showHint(ofKind('bowl').length ? 'Clique sur une gamelle pour la remplir.' : 'Place d’abord une gamelle avec Aménager.'); return; }
   if (tool === 'scoop'){ scoopAt(p); return; }
@@ -522,7 +524,7 @@ function drawTitle(t){
   });
 }
 function showTitle(){
-  screen = 'title'; buildMode && toggleBuild(false); laser.on = false; closeModal();
+  screen = 'title'; buildMode && toggleBuild(false); laser.on = false; closeModal(); closeRadio();
   $('title').hidden = false; $('game').hidden = true;
   const s = loadSaved();
   $('btnContinue').hidden = !s;
@@ -571,6 +573,8 @@ function init(){
   $('btnDay').addEventListener('click', () => { let g = daylight > .5 ? 22 / 24 : 9 / 24; if (g <= dayPhase) g += 1; skipTo = g; });
   $('btnSound').addEventListener('click', () => { soundOn = !soundOn; G.soundOn = soundOn; if (soundOn){ audio(); } else if (actx) actx.suspend(); updateToolbar(); });
   $('btnShop').addEventListener('click', () => openShop());
+  $('btnRadio').addEventListener('click', () => radio.open ? closeRadio() : openRadio());
+  initRadio();
   $('btnBuild').addEventListener('click', () => toggleBuild(!buildMode));
   $('btnAdopt').addEventListener('click', () => openCreator(false));
   $('btnAch').addEventListener('click', () => { renderAch(); showModal('achModal'); });

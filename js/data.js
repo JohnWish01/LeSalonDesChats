@@ -86,6 +86,7 @@ const ITEM_LIST = [
   {id:'rug2',    cat:'deco',    kind:'rug',     name:'Tapis persan',           price:120, comfort:3, desc:'Chic et moelleux.', hit:[110, 26]},
   {id:'plant1',  cat:'deco',    kind:'plant',   name:'Plante',                 price:20,  comfort:1, size:1,   desc:'Un peu de verdure.', hit:[20, 54]},
   {id:'plant2',  cat:'deco',    kind:'plant',   name:'Grand ficus',            price:70,  comfort:2, size:1.8, desc:'Une vraie jungle d’appartement.', hit:[32, 100]},
+  {id:'radio',   cat:'deco',    kind:'radio',   name:'Radio des chats',        price:80,  comfort:1, desc:'Cinq stations de musique pour chats (playlists YouTube). Clique dessus pour l’allumer.', hit:[28, 62]},
   {id:'lamp1',   cat:'deco',    kind:'lamp',    name:'Lampe sur pied',         price:25,  comfort:1, desc:'Éclaire la pièce la nuit.', hit:[24, 150]},
   {id:'lamp2',   cat:'deco',    kind:'lamp',    name:'Lampe boule',            price:80,  comfort:2, desc:'Une lumière douce et dorée.', hit:[22, 86]}
 ];
@@ -153,6 +154,15 @@ const PREF_LABEL = {
   spot: {tree:'l’arbre à chat', box:'le carton', bed:'le panier', sill:'la fenêtre'}
 };
 const PREF_TITLE = {toy:'Jouet préféré', food:'Plat préféré', spot:'Endroit préféré'};
+
+/* Stations de la radio : chacune lit une playlist YouTube publique (vérifiée). tempo = rythme des hochements de tête. */
+const RADIO_STATIONS = [
+  {id:'techno',  name:'Techno de chat', color:'#ff5ad1', list:'PLgM_HOgnO43hhQWVNK0g1jdak-xebU8se', tempo:8},
+  {id:'chill',   name:'Chill chat',     color:'#5ac8e8', list:'PLiX5g4OT36EqakBxDwU5zOqQ6fNPi42eP', tempo:2},
+  {id:'lofi',    name:'Lofi chat',      color:'#b89ae8', list:'PLumUPw_clK5HHuZIUFXApW7jShX5JPmMJ', tempo:3.5},
+  {id:'country', name:'Country chat',   color:'#e8a64e', list:'PLtkcU5PNPBVZv3nyKM-2jbOG1Jfg-m4sl', tempo:4.5},
+  {id:'pop',     name:'Pop chat',       color:'#ff7aa8', list:'PLvVCIm4mguE8XpFzrlFx30rl8Ru-GCo_F', tempo:5}
+];
 
 const ROOMS = [
   {id:'salon',   name:'Le Salon',     maxCats:5,  mult:1,   desc:'Un petit salon douillet pour commencer.', req:null},

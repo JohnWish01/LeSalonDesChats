@@ -36,7 +36,7 @@ function newGameState(){
     inv: {},
     food: {croq: 0, premium: 0, patee: 0}, care: {treat: 0, catnip: 0, vitamins: 0, kit: 0}, brush: false, laser: false, vibrateOn: true,
     coats: ['roux', 'noir', 'gris', 'blanc'], rooms: ['salon'], room: 'salon', ach: {}, adoptions: 0, uid: 1,
-    rel: {}, relFlags: {}, accInv: {}, clock: 0, catUid: 1, fur: [],
+    rel: {}, relFlags: {}, accInv: {}, clock: 0, catUid: 1, fur: [], radioLists: {}, radioVol: 60, radioStation: 'lofi',
     stats: {pets: 0, fills: 0, cleans: 0, separations: 0, placed: 0, birds: 0, heals: 0, patee: 0, brushes: 0, perfectDays: 0, accidentsToday: 0, fightsToday: 0, grown: 0},
     cats: [], placed: [], soundOn: true
   };
@@ -863,6 +863,7 @@ function step(dt){
   comfort = G.placed.reduce((a, o) => a + (ITEMS[o.type].comfort || 0), 0);
   for (const c of G.cats) update(c, dt);
   updateFights(dt);
+  updateRadio(dt);
   for (const L of ofKind('litter')) if (ITEMS[L.type].auto && L.dirt > 0){ L.autoT -= dt; if (L.autoT <= 0){ L.autoT = 40; L.dirt--; L.clumps.pop(); } }
   incomeT -= dt; if (incomeT <= 0){ incomeT = 15; payIncome(); }
   achT -= dt; if (achT <= 0){ achT = 1; checkAchievements(); updateRelations(); }
