@@ -7,7 +7,7 @@ function catSize(c){ return (c.kitten ? .62 + .38 * (c.grow || 0) : 1) * (c.coat
 function expr(c){
   if (isAsleep(c)) return {eyes: 'closed'};
   const a = c.anim && c.anim.type;
-  if (a === 'yawn') return {eyes: 'closed', mouth: 'yawn'};
+  if (a === 'yawn' || c.state === 'cough') return {eyes: 'closed', mouth: 'yawn', ears: c.state === 'cough' ? 'flat' : undefined};
   if (a === 'groom' || (c.state === 'groomFriend' && !c.moving)) return {eyes: 'happy', mouth: 'tongue'};
   if (c.state === 'fight' || c.state === 'flee' || (c.sulkT || 0) > 0) return {eyes: 'angry', ears: 'flat'};
   if (c.sick) return {eyes: 'sad', ears: 'droop'};

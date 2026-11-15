@@ -43,7 +43,7 @@ function updateToolbar(){
   $('btnVibrate').querySelector('span').textContent = vibrateOn ? 'Vibrations' : 'Sans vibration';
 }
 const HINTS = {
-  pet: 'Clique sur un chat pour le caresser (pas trop !), sur un jouet pour le lancer, ou sur deux chats qui se chamaillent pour les séparer.',
+  pet: 'Clique sur un chat pour le caresser (pas trop !), sur un jouet pour le lancer, sur une boule de poils pour la ramasser, ou sur deux chats qui se chamaillent pour les séparer.',
   laser: 'Promène le pointeur laser dans la pièce.',
   food: 'Choisis la nourriture, puis clique sur une gamelle pour la remplir.',
   treat: 'Clique sur un chat pour lui donner une friandise.',
@@ -74,6 +74,7 @@ function mood(c){
   if (c.state === 'fight') return c.fight && c.fight.phase === 'brawl' ? ['Se bagarre !', 'bad'] : c.fight && c.fight.phase === 'scuffle' ? ['Se chamaille', 'bad'] : ['Se toise', 'bad'];
   if (c.state === 'flee') return ['Vexé', 'bad'];
   if (c.state === 'rub') return ['Se frotte à toi', 'good'];
+  if (c.state === 'cough') return ['Crache une boule de poils', 'bad'];
   if (c.state === 'groomFriend') return ['Fait la toilette d’un ami', 'good'];
   if (c.state === 'tosnuggle') return ['Va se blottir', ''];
   if (c.state === 'trick') return ['Fait un tour !', 'good'];
@@ -264,6 +265,7 @@ function onDown(e){
       if (Math.hypot(p.x - f.x, (p.y - (f.y - 28 * s)) * 1.2) < 62 * s){ endFight(f, 'separated'); return; }
     }
   }
+  if (tool !== 'laser' && pickFur(p)) return;
   if (tool === 'laser'){ laser.on = true; laser.x = p.x; laser.y = p.y; cv.setPointerCapture(e.pointerId); return; }
   if (tool === 'food'){ const o = hitInst(p); if (o && kindOf(o) === 'bowl') fillBowl(o); else showHint(ofKind('bowl').length ? 'Clique sur une gamelle pour la remplir.' : 'Place d’abord une gamelle avec Aménager.'); return; }
   if (tool === 'scoop'){ scoopAt(p); return; }

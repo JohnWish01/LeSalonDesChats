@@ -287,6 +287,20 @@ function brushSound(){
   for (let k = 0; k < 3; k++){ const f = noiseBurst(a, t + k * .13, .12, 'bandpass', 3000, .8, .05); f.frequency.setValueAtTime(2000, t + k * .13); f.frequency.linearRampToValueAtTime(4500, t + k * .13 + .12); }
 }
 
+/* « keuh keuh » : le chat qui crache une boule de poils */
+function coughSound(c){
+  if (!ready()) return; const a = actx, t = a.currentTime, p = c ? c.voice.pitch : 1;
+  for (let k = 0; k < 3; k++){
+    const tt = t + k * .32;
+    noiseBurst(a, tt, .16, 'bandpass', 650 * p, 1.2, .13);
+    tone(a, tt, 'sawtooth', 190 * p, 120 * p, .14, .04);
+  }
+}
+/* ramasser une boule de poils : un petit « pof » doux */
+function pickSound(){
+  if (!ready()) return; const a = actx, t = a.currentTime;
+  noiseBurst(a, t, .1, 'lowpass', 1200, .7, .08); tone(a, t + .05, 'sine', 880, 1320, .12, .04);
+}
 function yawnSound(c){
   if (!ready()) return; const a = actx, t = a.currentTime, p = c ? c.voice.pitch : 1, d = .9;
   const o = a.createOscillator(), f = a.createBiquadFilter(), g = a.createGain();

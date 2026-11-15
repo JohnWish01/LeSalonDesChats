@@ -22,6 +22,7 @@ La partie est sauvegardée automatiquement dans le navigateur.
 - **Des accessoires** : colliers, nœud papillon, bandana, chapeau, béret, fleur, couronne, lunettes.
 - **Des tours** à apprendre avec des friandises (assis, donne la patte, high-five), qui rapportent des duchats.
 - **Des expressions et des poses** : toilette, bâillement, étirement, position pain, sieste sur le dos, oreilles en arrière quand il est fâché…
+- Ils **perdent leurs poils** et crachent parfois une **boule de poils** qu'il faut ramasser (la brosse aide).
 - Ils **suivent ta souris des yeux** et viennent parfois **se frotter** à ta main.
 
 ## Ce que font les chats tout seuls

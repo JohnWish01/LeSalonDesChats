@@ -36,7 +36,7 @@ function newGameState(){
     inv: {},
     food: {croq: 0, premium: 0, patee: 0}, care: {treat: 0, catnip: 0, vitamins: 0, kit: 0}, brush: false, laser: false, vibrateOn: true,
     coats: ['roux', 'noir', 'gris', 'blanc'], rooms: ['salon'], room: 'salon', ach: {}, adoptions: 0, uid: 1,
-    rel: {}, relFlags: {}, accInv: {}, clock: 0, catUid: 1,
+    rel: {}, relFlags: {}, accInv: {}, clock: 0, catUid: 1, fur: [],
     stats: {pets: 0, fills: 0, cleans: 0, separations: 0, placed: 0, birds: 0, heals: 0, patee: 0, brushes: 0, perfectDays: 0, accidentsToday: 0, fightsToday: 0, grown: 0},
     cats: [], placed: [], soundOn: true
   };
@@ -60,7 +60,27 @@ function makeCat(o){
   };
 }
 const CAT_SAVE = ['name', 'coatId', 'voice', 'traitId', 'lazy', 'patience', 'happy', 'hunger', 'thirst', 'bladder', 'energy', 'health', 'sick',
-  'id', 'kitten', 'born', 'favToy', 'favFood', 'favSpot', 'known', 'acc', 'tricks', 'mem', 'stripes', 'stripeColor'];
+  'id', 'kitten', 'born', 'favToy', 'favFood', 'favSpot', 'known', 'acc', 'tricks', 'mem', 'stripes', 'stripeColor', 'shed'];
+
+/* ---------- poils perdus et boules de poils ---------- */
+const furPos = f => ({x: f.u * W, y: floorTop + f.v * (H - floorTop)});
+function dropFur(c, kind){
+  if (G.fur.length >= 15 || c.onTree) return;
+  const s = scaleAt(c.y), x = clamp(c.x - c.dir * rand(12, 26) * s, 16, W - 16), y = clamp(c.y + rand(-4, 8), minY(), H - 8);
+  if (!isFinite(x) || !isFinite(y) || !W) return;
+  G.fur.push({u: x / W, v: (y - floorTop) / (H - floorTop), kind, r: rand(.85, 1.15), rot: rand(0, 6), col: c.coat.base, dark: c.coat.stripeColor || c.coat.dark});
+  if (!G.stats.furHint){ G.stats.furHint = 1; showHint(kind === 'ball' ? `${c.name} a craché une boule de poils ! Clique dessus pour la ramasser.` : `${c.name} perd ses poils… Clique sur la touffe pour la ramasser. La brosse limite les poils perdus.`, 7000); }
+}
+function pickFur(p){
+  let best = -1, bd = Infinity;
+  G.fur.forEach((f, i) => { const q = furPos(f), s = scaleAt(q.y), d = Math.hypot(p.x - q.x, (p.y - (q.y - 5 * s)) * 1.3); if (d < 24 * s && d < bd){ bd = d; best = i; } });
+  if (best < 0) return false;
+  const q = furPos(G.fur[best]), s = scaleAt(q.y);
+  G.fur.splice(best, 1);
+  G.stats.fur = (G.stats.fur || 0) + 1;
+  sparkle(q.x, q.y - 6 * s, s * .7); pickSound(); addCoins(1, q.x, q.y - 30 * s, true);
+  return true;
+}
 
 /* ---------- relations entre chats (-100 rivaux … +100 meilleurs amis) ---------- */
 const relKey = (a, b) => a.id < b.id ? `${a.id}-${b.id}` : `${b.id}-${a.id}`;
@@ -287,7 +307,13 @@ function update(c, dt){
   c.bladder = Math.min(100, c.bladder + dt * (.6 + (eating ? 2.5 : 0)));
   const resting = isAsleep(c);
   c.energy = clamp(c.energy + (resting ? dt * (c.state === 'bed' ? 11 : 7) : -dt * (c.state === 'chase' || c.state === 'crazy' ? 3 : .6) * (c.sick ? 1.6 : 1)), 0, 100);
-  const decay = ((c.hunger > 70 ? 1.1 : .4) + (c.thirst > 75 ? .5 : 0) + (c.sick ? .6 : 0)) / (1 + comfort * .06);
+  const decay = ((c.hunger > 70 ? 1.1 : .4) + (c.thirst > 75 ? .5 : 0) + (c.sick ? .6 : 0) + Math.min(.6, G.fur.length * .04)) / (1 + comfort * .06);
+  // perte de poils : plus forte pour les poils longs, nulle pour le Sphynx ; la brosse la réduit
+  if (c.coat.pat !== 'sphynx' && !c.onTree && !hiddenCat(c)){
+    c.shed = (c.shed || 0) + dt * (c.coat.pat === 'fluffy' ? 1.6 : .8);
+    if (c.shed >= 100){ dropFur(c, 'tuft'); c.shed = rand(0, 25); }
+    if (c.shed > 70 && isFree(c.state) && Math.random() < dt * .004){ setState(c, 'cough', 1.7); coughSound(c); }
+  }
   c.happy = clamp(c.happy - dt * decay, 0, c.sick ? 60 : 100);
   let dh = 0;
   if (c.hunger > 85) dh -= .55;
@@ -408,6 +434,10 @@ function update(c, dt){
     }
     case 'trick':
       c.timer -= dt; if (c.timer <= 0) setState(c, 'idle', rand(2, 3));
+      break;
+    case 'cough':
+      c.timer -= dt; c.hop = Math.abs(Math.sin(c.timer * 18)) * 2 * scaleAt(c.y);
+      if (c.timer <= 0){ c.hop = 0; dropFur(c, 'ball'); c.shed = Math.max(0, c.shed - 50); setState(c, 'idle', rand(2, 3)); say(c, 'Ouf…', 1.2); }
       break;
     case 'chase': {
       if (!laser.on){ setState(c, 'idle', rand(1, 2.5)); break; }
@@ -652,7 +682,7 @@ function brushCat(c){
   c.brushAt = t;
   c.pets = c.pets.filter(x => t - x < 3500); c.pets.push(t);
   if (c.pets.length > c.patience + 2){ c.pets = []; say(c, 'Pfff !', 2); c.happy = Math.max(0, c.happy - 8); const p = randFloor(); c.tx = p.x; c.ty = p.y; if (!c.onTree && !HOLD.has(c.state)) setState(c, 'flee', 3); return; }
-  G.stats.brushes++; c.mem.brushes++; c.happy = Math.min(100, c.happy + 7); c.health = Math.min(100, c.health + 2);
+  G.stats.brushes++; c.mem.brushes++; c.shed = Math.max(0, (c.shed || 0) - 35); c.happy = Math.min(100, c.happy + 7); c.health = Math.min(100, c.health + 2);
   brushSound(); const s = catScale(c); sparkle(c.x, c.y - 30 * s, s);
   if (Math.random() < .5) say(c, pick(['Prrrr', 'Mrrrou']));
 }
@@ -859,6 +889,7 @@ function render(t){
   const lit = daylight < .5;
   for (const o of G.placed) if (kindOf(o) === 'rug'){ drawItemAt(o, o.x, o.y, scaleAt(o.y), lit); }
   puddles.forEach(drawPuddle);
+  for (const f of G.fur){ const q = furPos(f); drawFur(f, q.x, q.y, scaleAt(q.y)); }
   const ents = [];
   for (const o of G.placed) if (kindOf(o) !== 'rug') ents.push({y: o.y, d: () => drawItemAt(o, o.x, o.y, scaleAt(o.y), lit)});
   for (const c of G.cats) if (!hiddenCat(c)) ents.push({y: c.onTree ? (c.target === sill ? 0 : (c.target ? c.target.y + .5 : c.perchBaseY + .5)) : c.y, d: () => drawCat(c)});

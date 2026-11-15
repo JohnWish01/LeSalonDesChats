@@ -184,6 +184,7 @@ const ACH = [
   {id:'prefs',     name:'Je te connais par cœur', desc:'Découvrir les trois préférences d’un chat.',       reward:40,  test:(s, g) => g.cats.some(c => c.known && c.known.toy && c.known.food && c.known.spot)},
   {id:'tricks3',   name:'Dresseur',            desc:'Apprendre 3 tours à tes chats.',                      reward:50,  prog:(s, g) => [g.cats.reduce((n, c) => n + TRICKS.filter(t => (c.tricks || {})[t.id] >= t.sessions).length, 0), 3]},
   {id:'fashion',   name:'Chat-rmant',          desc:'Trois chats portent un accessoire en même temps.',    reward:40,  prog:(s, g) => [g.cats.filter(c => c.acc && Object.values(c.acc).some(Boolean)).length, 3]},
+  {id:'fur20',     name:'Plus un poil',        desc:'Ramasser 20 boules de poils.',                        reward:30,  prog:s => [s.fur || 0, 20]},
   {id:'grownup',   name:'Il a bien grandi',    desc:'Un chaton devient adulte.',                           reward:40,  prog:s => [s.grown || 0, 1]},
   {id:'veranda',   name:'Chat-pitre deux',     desc:'Débloquer la Véranda.',                               reward:50,  prog:(s, g) => [g.rooms.includes('veranda') ? 1 : 0, 1]},
   {id:'chateau',   name:'Chat-telain',         desc:'Débloquer le Chat-teau.',                             reward:150, prog:(s, g) => [g.rooms.includes('chateau') ? 1 : 0, 1]},

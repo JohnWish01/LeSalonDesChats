@@ -320,6 +320,27 @@ function drawLamp(o, lit){
 }
 const lampHead = o => o.type === 'lamp1' ? -132 : -66;
 
+/* Touffe de poils (perte de poils) ou boule de poils crachée. */
+function drawFur(f, x, y, s){
+  ctx.save(); ctx.translate(x, y); ctx.scale(s * f.r, s * f.r);
+  ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.beginPath(); ctx.ellipse(0, 1, 10, 2.5, 0, 0, Math.PI * 2); ctx.fill();
+  if (f.kind === 'ball'){
+    ctx.rotate(f.rot * .1 - .3);
+    ctx.fillStyle = mix(f.dark, '#3a2a20', .3); ctx.beginPath(); ctx.ellipse(0, -4, 9, 4.2, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = mix(f.col, '#000000', .25); ctx.lineWidth = 1; ctx.lineCap = 'round';
+    for (let i = -3; i <= 3; i++){ ctx.beginPath(); ctx.moveTo(i * 2.4, -7.5); ctx.quadraticCurveTo(i * 2.4 + 2, -4, i * 2.4 - 1, -.5); ctx.stroke(); }
+    ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.beginPath(); ctx.ellipse(-3, -6, 3, 1, -.2, 0, Math.PI * 2); ctx.fill();
+  } else {
+    ctx.fillStyle = f.col; ctx.globalAlpha = .9;
+    for (let i = 0; i < 6; i++){ const a = f.rot + i * 1.05; ctx.beginPath(); ctx.arc(Math.cos(a) * 4, -4 + Math.sin(a) * 2, 4.2, 0, Math.PI * 2); ctx.fill(); }
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = f.col; ctx.lineWidth = .9; ctx.lineCap = 'round';
+    for (let i = 0; i < 12; i++){ const a = f.rot * 2 + i * .52; ctx.beginPath(); ctx.moveTo(Math.cos(a) * 5, -4 + Math.sin(a) * 2.5); ctx.lineTo(Math.cos(a) * 10, -4 + Math.sin(a) * 5); ctx.stroke(); }
+    ctx.strokeStyle = 'rgba(0,0,0,.15)'; ctx.beginPath(); ctx.arc(1, -4, 4, .5, 2.4); ctx.stroke();
+  }
+  ctx.restore();
+}
+
 function drawPuddle(q){
   ctx.fillStyle = 'rgba(232,205,70,.55)'; ctx.beginPath(); ctx.ellipse(q.x, q.y, q.r, q.r * .38, 0, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.beginPath(); ctx.ellipse(q.x - q.r * .3, q.y - q.r * .1, q.r * .3, q.r * .08, 0, 0, Math.PI * 2); ctx.fill();
