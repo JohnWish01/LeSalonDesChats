@@ -1,1496 +1,309 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Le Salon des Chats</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M8 30 L12 4 L30 18 Z M56 30 L52 4 L34 18 Z' fill='%23e08a3c'/%3E%3Cpath d='M14 12 L16 24 L24 18 Z M50 12 L48 24 L40 18 Z' fill='%23ff9fb8'/%3E%3Cellipse cx='32' cy='38' rx='25' ry='22' fill='%23e08a3c'/%3E%3Cpath d='M26 18 l2 8 M32 17 v9 M38 18 l-2 8' stroke='%23a9561a' stroke-width='3' stroke-linecap='round'/%3E%3Cellipse cx='22' cy='37' rx='4.5' ry='6' fill='%23231a26'/%3E%3Cellipse cx='42' cy='37' rx='4.5' ry='6' fill='%23231a26'/%3E%3Ccircle cx='23.5' cy='34.5' r='1.6' fill='%23fff'/%3E%3Ccircle cx='43.5' cy='34.5' r='1.6' fill='%23fff'/%3E%3Cpath d='M28.5 46 h7 l-3.5 4 Z' fill='%23ff7aa8'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@400;600;700;800&display=swap">
 <style>
-/* Layout: a cozy night-time living room (canvas) as the hero, a tool shelf below, then name cards for each resident cat. Single dark, lamp-lit look by choice. */
+/* Layout: a lamp-lit room (canvas) is the stage; a HUD sits above it, tools below, cat cards after. Modals for shop, creator, achievements, rooms. Single dark plum look by choice. */
 :root{
-  --bg:#231a26; --panel:#30243a; --panel-2:#3b2d46; --ink:#f3e9dc; --muted:#b9a9b9;
-  --accent:#f2a65a; --rose:#ff7aa8; --line:rgba(243,233,220,.12);
+  --bg:#231a26; --panel:#30243a; --panel-2:#3b2d46; --panel-3:#47375a; --ink:#f3e9dc; --muted:#b9a9b9;
+  --accent:#f2a65a; --rose:#ff7aa8; --gold:#f2c24a; --good:#9be38a; --bad:#ff9a8a; --sleep:#a9b8ff; --line:rgba(243,233,220,.12);
   --display:"Baloo 2","Trebuchet MS",system-ui,sans-serif;
   --body:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;
   color-scheme:dark;
 }
-html,body{background:var(--bg);color:var(--ink)}
-body{font-family:var(--body);font-size:15px;line-height:1.5;margin:0}
-.wrap{max-width:1000px;margin:0 auto;padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
-header{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 16px}
-h1{font-family:var(--display);font-weight:800;font-size:clamp(28px,5vw,42px);line-height:1.05;margin:0;letter-spacing:.2px;text-wrap:balance}
-h1 span{color:var(--accent)}
-header p{margin:0;color:var(--muted);max-width:46ch}
-.stage{position:relative;border-radius:18px;overflow:hidden;box-shadow:0 18px 40px rgba(0,0,0,.4);border:1px solid var(--line)}
-canvas{display:block;width:100%;height:min(62vh,520px);min-height:320px;touch-action:none;cursor:pointer}
-canvas.laser{cursor:crosshair}
-.hint{position:absolute;left:12px;bottom:12px;right:12px;pointer-events:none;display:flex}
-.hint span{background:rgba(25,18,28,.72);backdrop-filter:blur(4px);padding:6px 12px;border-radius:999px;font-size:13px;font-weight:600;transition:opacity .6s}
-.hint span.gone{opacity:0}
-.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.tools .sep{flex:1}
-button{font:700 14px var(--body);color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:background .15s,transform .1s}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--ink);margin:0}
+body{font-family:var(--body);font-size:15px;line-height:1.5}
+[hidden]{display:none!important}
+button{font:700 14px var(--body);color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:9px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:background .15s,transform .1s}
 button:hover{background:var(--panel-2)}
 button:active{transform:translateY(1px)}
-button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 button[aria-pressed="true"]{background:var(--accent);color:#2a1a10;border-color:transparent}
-button.adopt{background:transparent;border:1.5px dashed var(--accent);color:var(--accent)}
-button.adopt:hover{background:rgba(242,166,90,.1)}
-button:disabled{opacity:.5;cursor:default}
+button:disabled{opacity:.45;cursor:default;transform:none}
+button.primary{background:var(--accent);color:#2a1a10;border-color:transparent}
+button.ghost{background:transparent}
+select,input{font:600 14px var(--body);color:var(--ink);background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.coin{width:18px;height:18px;flex:none;vertical-align:-4px}
+.muted{color:var(--muted)}
+h1,h2{font-family:var(--display);margin:0;text-wrap:balance}
+h1 span{color:var(--accent)}
+
+/* écran titre */
+.title-screen{position:fixed;inset:0;z-index:40;overflow:auto}
+#titleCanvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.title-ui{position:relative;min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:18px;padding-block:max(8vh,40px) 30vh;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));text-align:center}
+.title-ui h1{font-size:clamp(40px,9vw,84px);font-weight:800;line-height:.95;text-shadow:0 6px 30px rgba(0,0,0,.4)}
+.title-ui .tagline{margin:0;color:var(--muted);font-size:17px;max-width:40ch}
+.menu{display:flex;flex-direction:column;gap:10px;width:min(320px,100%)}
+.menu .big{justify-content:center;flex-direction:column;gap:0;padding:14px 18px;font-size:18px;font-family:var(--display);background:rgba(48,36,58,.85);backdrop-filter:blur(4px)}
+.menu .big.primary{background:var(--accent)}
+.menu .big small{font:600 12px var(--body);opacity:.8}
+#newConfirm{background:rgba(48,36,58,.92);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center}
+#helpPanel{background:rgba(35,26,38,.92);border:1px solid var(--line);border-radius:16px;padding:16px 20px;max-width:560px;text-align:left}
+#helpPanel ul{margin:0;padding-left:18px;display:grid;gap:6px}
+
+/* jeu */
+.wrap{max-width:1040px;margin:0 auto;padding-block:16px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:12px}
+.hud{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.brand h1{font-size:clamp(24px,4vw,32px);font-weight:800;line-height:1}
+.room-pill{font:700 13px var(--body);background:var(--panel-2);padding:3px 10px;border-radius:999px;color:var(--accent)}
+.hud-right{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.coins{display:inline-flex;align-items:center;gap:6px;background:#3a2c1a;border:1px solid #6a4e22;color:var(--gold);padding:6px 12px;border-radius:999px;font-weight:800;font-variant-numeric:tabular-nums}
+.coins small{font-weight:600;color:#d9b77a}
+#btnAch b{background:var(--panel-3);padding:0 6px;border-radius:6px;font-size:12px}
+.stage{position:relative;border-radius:18px;overflow:hidden;box-shadow:0 18px 40px rgba(0,0,0,.4);border:1px solid var(--line)}
+#room{display:block;width:100%;height:min(62vh,540px);min-height:330px;touch-action:none;cursor:pointer}
+#room.laser{cursor:crosshair}
+#room.build{cursor:move}
+.hint{position:absolute;left:12px;bottom:12px;right:12px;pointer-events:none;display:flex}
+.hint span{background:rgba(25,18,28,.78);backdrop-filter:blur(4px);padding:6px 12px;border-radius:14px;font-size:13px;font-weight:600;transition:opacity .6s;max-width:100%}
+.hint span.gone{opacity:0}
+#toasts{position:absolute;top:10px;right:10px;display:flex;flex-direction:column;gap:6px;align-items:flex-end;pointer-events:none;max-width:calc(100% - 20px)}
+.toast{background:rgba(48,36,58,.95);border:1px solid var(--line);border-radius:12px;padding:8px 12px;display:flex;flex-direction:column;box-shadow:0 8px 20px rgba(0,0,0,.35);animation:tin .35s ease-out;transition:opacity .5s,transform .5s;max-width:320px}
+.toast b{font-family:var(--display);font-size:15px}
+.toast span{font-size:13px;color:var(--muted)}
+.toast.gold{border-color:#a8822a;background:rgba(70,52,24,.95)}
+.toast.gold b{color:var(--gold)}
+.toast.out{opacity:0;transform:translateX(20px)}
+@keyframes tin{from{opacity:0;transform:translateY(-8px)}}
+.tools{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tools .sep{flex:1}
+.tool-group{display:inline-flex;gap:4px;align-items:center}
+.tool-group select{padding:7px 8px;max-width:190px}
+.count{background:var(--panel-3);border-radius:6px;padding:0 6px;font-size:12px}
+button.locked{opacity:.6}
 .ico{width:18px;height:18px;flex:none}
-h2{font-family:var(--display);font-weight:600;font-size:20px;margin:8px 0 0}
-#roster{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.buildbar{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.bb-head{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline}
+.bb-head b{font-family:var(--display);font-size:18px}
+.inv-list{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.inv{flex-direction:column;gap:2px;padding:6px 8px;min-width:92px;background:var(--panel-2)}
+.inv canvas{width:72px;height:54px}
+.inv span{font-size:12px;line-height:1.2;text-align:center}
+.inv em{font-style:normal;font-size:12px;color:var(--accent)}
+.inv.on{background:var(--accent);color:#2a1a10}
+.inv.on em{color:#2a1a10}
+.bb-actions{display:flex;flex-wrap:wrap;gap:6px}
+.bb-actions .primary{margin-left:auto}
+#rosterTitle{font-weight:600;font-size:20px;margin-top:6px}
+#roster{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
 #roster li{background:var(--panel);border-radius:14px;padding:12px 14px;display:grid;grid-template-columns:auto 1fr auto auto;gap:4px 10px;align-items:center;min-width:0}
-.sw{width:26px;height:26px;border-radius:50%;border:2px solid rgba(255,255,255,.25)}
-#roster b{font-family:var(--display);font-weight:600;font-size:17px;display:block;line-height:1.1}
-#roster small{color:var(--muted);font-size:12px;display:block}
+#roster li.empty{display:block;color:var(--muted)}
+.sw{width:26px;height:26px;border-radius:50%;border:2px solid rgba(255,255,255,.25);display:inline-block;flex:none}
+.who{min-width:0}
+.who b{font-family:var(--display);font-weight:600;font-size:17px;display:block;line-height:1.1}
+.who small{color:var(--muted);font-size:12px;display:block}
 .mood{font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--panel-2);white-space:nowrap}
-.mood.good{color:#9be38a}.mood.bad{color:#ff9a8a}.mood.zzz{color:#a9b8ff}
+.mood.good{color:var(--good)}.mood.bad{color:var(--bad)}.mood.zzz{color:var(--sleep)}
 button.listen{width:30px;height:30px;padding:0;justify-content:center;border-radius:50%;font-size:15px;background:var(--panel-2)}
 button.listen:hover{background:var(--accent);color:#2a1a10}
-.bar{grid-column:1/-1;height:6px;border-radius:6px;background:var(--panel-2);overflow:hidden;margin-top:4px}
+.bars{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.bars label{font-size:11px;color:var(--muted);display:flex;flex-direction:column;gap:2px}
+.bar{display:block;height:6px;border-radius:6px;background:var(--panel-2);overflow:hidden}
 .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--rose));border-radius:6px;transition:width .4s}
-@media (prefers-reduced-motion:reduce){button,.bar i{transition:none}}
-</style>
+.bar.health i{background:linear-gradient(90deg,#5ac8b8,var(--good))}
 
-<div class="wrap">
-  <header>
-    <h1>Le Salon <span>des Chats</span></h1>
-    <p>Caresse-les, sors le laser, remplis les gamelles. Chaque chat a son caractère.</p>
+/* fenêtres */
+.modal{position:fixed;inset:0;z-index:50;background:rgba(12,8,16,.7);display:flex;align-items:center;justify-content:center;padding:16px}
+.sheet{background:var(--panel);border:1px solid var(--line);border-radius:20px;width:min(720px,100%);max-height:calc(100vh - 32px);overflow:auto;padding:18px;display:flex;flex-direction:column;gap:12px;box-shadow:0 30px 60px rgba(0,0,0,.5)}
+.sheet.wide{width:min(920px,100%)}
+.sheet-head{display:flex;align-items:center;gap:10px}
+.sheet-head h2{font-size:24px;flex:1}
+.x{width:36px;height:36px;padding:0;justify-content:center;border-radius:50%;font-size:20px}
+.sheet-foot{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.card{background:var(--panel-2);border-radius:14px;padding:10px;display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;min-width:0}
+.card canvas{width:96px;height:66px;background:var(--panel-3);border-radius:10px}
+.card-body{min-width:0;display:flex;flex-direction:column;gap:2px}
+.card-body b{font-family:var(--display);font-size:16px;line-height:1.15}
+.card-body p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.35}
+.card-body small{font-size:12px;color:var(--accent)}
+.card-foot{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:6px;flex-wrap:wrap}
+.price{display:inline-flex;align-items:center;gap:4px;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums}
+.buy{padding:6px 12px;background:var(--accent);color:#2a1a10;border-color:transparent}
+.buy:disabled{background:var(--panel-3);color:var(--muted)}
+.tag{font-size:12px;font-weight:800;padding:3px 10px;border-radius:999px;background:var(--panel-3)}
+.tag.ok{color:var(--good)}
+.cr-grid{display:grid;grid-template-columns:180px 1fr;gap:16px}
+.cr-preview{display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--panel-2);border-radius:16px;padding:10px}
+.cr-preview canvas{width:160px;height:160px}
+.cr-preview b{font-family:var(--display);font-size:16px}
+.cr-form{display:flex;flex-direction:column;gap:6px;min-width:0}
+.cr-form .lbl,.cr-form label{font-weight:800;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:6px}
+.row{display:flex;gap:6px}
+.row input{flex:1;min-width:0}
+.coats{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:6px}
+.coat{flex-direction:column;gap:2px;padding:6px 4px;position:relative;background:var(--panel-2)}
+.coat small{font-size:11px;line-height:1.1;text-align:center}
+.coat em{position:absolute;top:3px;right:4px;font-style:normal;font-size:10px;font-weight:800;color:var(--gold);background:rgba(0,0,0,.35);padding:0 4px;border-radius:5px}
+.coat.locked .sw{filter:grayscale(.6) brightness(.7)}
+.coat.on{background:var(--accent);color:#2a1a10}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:6px 10px;font-size:13px;background:var(--panel-2)}
+.chip.on{background:var(--accent);color:#2a1a10}
+#crMsg{margin:0;color:var(--muted);font-size:14px}
+#achList{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+#achList li{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;background:var(--panel-2);border-radius:12px;padding:10px 12px}
+#achList li p{margin:0;font-size:13px;color:var(--muted)}
+#achList li b{font-family:var(--display);font-size:16px}
+#achList li small{font-size:11px;color:var(--muted)}
+#achList li .bar{margin-top:4px}
+#achList li.done{background:#3a3424}
+#achList li.challenge b{color:var(--rose)}
+.check{width:26px;height:26px;border-radius:50%;background:var(--panel-3);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--good)}
+#roomsList{display:grid;gap:10px}
+.room-card{display:grid;grid-template-columns:240px 1fr;gap:14px;background:var(--panel-2);border-radius:14px;padding:12px;align-items:start}
+.room-card.here{outline:2px solid var(--accent)}
+.room-card canvas{width:100%;max-width:240px;border-radius:10px}
+.room-card b{font-family:var(--display);font-size:20px}
+.room-card p{margin:2px 0 6px;color:var(--muted);font-size:13.5px}
+.req{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center;font-size:12.5px;margin-top:4px}
+@media (max-width:620px){
+  .cr-grid{grid-template-columns:1fr}
+  .room-card{grid-template-columns:1fr}
+  .card{grid-template-columns:1fr}
+  .card canvas{width:100%;height:auto;aspect-ratio:128/88}
+  .hud-right button{padding:7px 10px}
+}
+@media (prefers-reduced-motion:reduce){button,.bar i,.toast,.hint span{transition:none;animation:none}}
+</style>
+</head>
+<body>
+
+<div id="title" class="title-screen">
+  <canvas id="titleCanvas" aria-hidden="true"></canvas>
+  <div class="title-ui">
+    <h1>Le Salon<br><span>des Chats</span></h1>
+    <p class="tagline">Adopte tes chats, aménage leur maison, prends soin d’eux… et gagne des duchats.</p>
+    <div class="menu">
+      <button id="btnContinue" class="big primary" hidden><span>Continuer</span><small></small></button>
+      <button id="btnNew" class="big">Nouvelle partie</button>
+      <div id="newConfirm" hidden>
+        <span>Effacer la partie en cours ?</span>
+        <button id="btnNewYes" class="primary">Oui, recommencer</button>
+        <button id="btnNewNo" class="ghost">Annuler</button>
+      </div>
+      <button id="btnHelp" class="ghost">Comment jouer</button>
+    </div>
+    <div id="helpPanel" hidden>
+      <ul>
+        <li><b>Crée ton chat</b> : nom, pelage, voix et caractère.</li>
+        <li><b>Aménage</b> la pièce vide : gamelle, eau, litière, puis jouets, arbre à chat, panier, déco…</li>
+        <li><b>Prends soin</b> de tes chats : nourris-les, nettoie les litières, caresse-les, brosse-les, soigne-les s’ils tombent malades.</li>
+        <li>Des chats heureux rapportent des <b>duchats</b>, la monnaie du jeu. Dépense-les à la <b>boutique</b> : meilleurs objets, nourriture de qualité, soins, nouveaux pelages.</li>
+        <li>Réussis des <b>succès</b> pour débloquer <b>La Véranda</b> puis <b>Le Chat-teau</b>, et les pelages rares grâce aux défis.</li>
+        <li>La partie est sauvegardée automatiquement dans ce navigateur.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div id="game" class="wrap" hidden>
+  <header class="hud">
+    <div class="brand"><h1>Le Salon <span>des Chats</span></h1><span id="roomName" class="room-pill"></span></div>
+    <div class="hud-right">
+      <span class="coins" title="Tes duchats"><svg class="coin" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 7 L5 1.5 L8.5 4.5 Z M16 7 L15 1.5 L11.5 4.5 Z" fill="#e0a92a"/><circle cx="10" cy="11" r="8" fill="#f2c24a" stroke="#c98a1a" stroke-width="1.5"/><path d="M7 10.5 q1 -1.6 2 0 M11 10.5 q1 -1.6 2 0" stroke="#8a5a10" stroke-width="1.2" fill="none" stroke-linecap="round"/><path d="M9.2 13 h1.6 l-.8 .9 z" fill="#8a5a10"/></svg><b id="coinCount">0</b><small>duchats</small></span>
+      <button id="btnShop">Boutique</button>
+      <button id="btnBuild" aria-pressed="false">Aménager</button>
+      <button id="btnAdopt">Adopter</button>
+      <button id="btnAch">Succès <b id="achCount"></b></button>
+      <button id="btnRooms">Pièces</button>
+      <button id="btnMenu" class="ghost">Menu</button>
+    </div>
   </header>
 
   <div class="stage">
-    <canvas id="room" aria-label="Le salon où vivent les chats"></canvas>
-    <div class="hint"><span id="hint"></span></div>
+    <canvas id="room" aria-label="La pièce où vivent tes chats"></canvas>
+    <div class="hint"><span id="hint" class="gone"></span></div>
+    <div id="toasts" aria-live="polite"></div>
   </div>
 
-  <div class="tools" role="toolbar" aria-label="Outils">
-    <button id="t-pet" data-tool="pet" aria-pressed="true">
-      <svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-9.5-9.3C1.2 8.4 3.3 5 6.6 5c2 0 3.4 1.1 4.2 2.4h2.4C14 6.1 15.4 5 17.4 5c3.3 0 5.4 3.4 4.1 6.7C19.5 16.4 12 21 12 21z"/></svg>Caresser</button>
-    <button id="t-laser" data-tool="laser" aria-pressed="false">
-      <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" fill="#ff3b3b"/><circle cx="12" cy="12" r="8" fill="none" stroke="#ff3b3b" stroke-opacity=".4" stroke-width="2"/></svg>Laser</button>
-    <button id="t-food" data-tool="food" aria-pressed="false">
-      <svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M2 12h20c0 4.4-4.5 8-10 8S2 16.4 2 12z"/><circle cx="8" cy="10" r="1.6"/><circle cx="12" cy="9" r="1.6"/><circle cx="16" cy="10" r="1.6"/></svg>Croquettes</button>
-    <button id="t-ball" data-tool="ball" aria-pressed="false">
-      <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#e0577a"/><path d="M5 9c4 1 10 1 14-1M4.5 13c5 1.5 10 1 15-1.5M8 19c2-4 6-9 9-12" fill="none" stroke="#f6a3bb" stroke-width="1.4"/></svg>Pelote</button>
-    <button id="t-scoop" data-tool="scoop" aria-pressed="false">
-      <svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h11v6c0 3-2.5 5-5.5 5S3 14 3 11z" opacity=".9"/><rect x="13.5" y="6.5" width="8" height="2.6" rx="1.3"/></svg>Pelle</button>
+  <div id="tools" class="tools" role="toolbar" aria-label="Outils">
+    <button data-tool="pet" aria-pressed="true"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-9.5-9.3C1.2 8.4 3.3 5 6.6 5c2 0 3.4 1.1 4.2 2.4h2.4C14 6.1 15.4 5 17.4 5c3.3 0 5.4 3.4 4.1 6.7C19.5 16.4 12 21 12 21z"/></svg>Caresser</button>
+    <button data-tool="laser" aria-pressed="false"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" fill="#ff3b3b"/><circle cx="12" cy="12" r="8" fill="none" stroke="#ff3b3b" stroke-opacity=".4" stroke-width="2"/></svg>Laser</button>
+    <span class="tool-group"><button data-tool="food" aria-pressed="false"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M2 12h20c0 4.4-4.5 8-10 8S2 16.4 2 12z"/><circle cx="8" cy="10" r="1.6"/><circle cx="12" cy="9" r="1.6"/><circle cx="16" cy="10" r="1.6"/></svg>Nourrir</button><select id="foodSel" aria-label="Nourriture"></select></span>
+    <button data-tool="treat" aria-pressed="false"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M3 12c4-6 11-6 15 0-4 6-11 6-15 0zm15 0 4-4v8z"/></svg>Friandise <span id="treatCount" class="count">0</span></button>
+    <button id="t-brush" data-tool="brush" aria-pressed="false"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="10" width="11" height="4" rx="2"/><rect x="12" y="6" width="10" height="9" rx="3"/><path d="M13 16v4M15.5 16v4M18 16v4M20.5 16v4" stroke="currentColor" stroke-width="1.4"/></svg>Brosse</button>
+    <span class="tool-group"><button data-tool="care" aria-pressed="false"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/></svg>Soigner</button><select id="careSel" aria-label="Soin"></select></span>
+    <button data-tool="scoop" aria-pressed="false"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h11v6c0 3-2.5 5-5.5 5S3 14 3 11z"/><rect x="13.5" y="6.5" width="8" height="2.6" rx="1.3"/></svg>Pelle</button>
     <span class="sep"></span>
-    <button id="daynight"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg><span>Passer à la nuit</span></button>
-    <button id="sound"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>Son activé</span></button>
-    <button id="adopt" class="adopt">+ Adopter un chat</button>
+    <button id="btnDay"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>Jour / nuit</button>
+    <button id="btnSound"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>Son activé</span></button>
   </div>
 
-  <h2 id="count">Les résidents</h2>
+  <div id="buildBar" class="buildbar" hidden>
+    <div class="bb-head"><b>Aménagement</b><span class="muted">Choisis un objet puis clique dans la pièce. Objet sélectionné : <span id="selName">aucun</span></span></div>
+    <div id="buildList" class="inv-list"></div>
+    <div class="bb-actions">
+      <button id="btnStore">Ranger l’objet sélectionné</button>
+      <button id="btnStoreAll" class="ghost">Tout ranger</button>
+      <button id="btnBuildShop" class="ghost">Boutique</button>
+      <button id="btnBuildDone" class="primary">Terminer</button>
+    </div>
+  </div>
+
+  <h2 id="rosterTitle">Tes chats</h2>
   <ul id="roster"></ul>
 </div>
 
-<script>
-(() => {
-const cv = document.getElementById('room'), ctx = cv.getContext('2d');
-const hintEl = document.getElementById('hint'), rosterEl = document.getElementById('roster');
-const adoptBtn = document.getElementById('adopt'), countEl = document.getElementById('count');
-const rand = (a, b) => a + Math.random() * (b - a);
-const pick = a => a[Math.floor(Math.random() * a.length)];
-const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+<div id="shopModal" class="modal" hidden>
+  <div class="sheet wide" role="dialog" aria-modal="true" aria-labelledby="shopH">
+    <div class="sheet-head"><h2 id="shopH">Boutique</h2><span class="coins"><svg class="coin" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="11" r="8" fill="#f2c24a" stroke="#c98a1a" stroke-width="1.5"/></svg><b id="shopCoins">0</b></span><button class="x" data-close aria-label="Fermer">×</button></div>
+    <div id="shopTabs" class="tabs"></div>
+    <div id="shopGrid" class="grid"></div>
+  </div>
+</div>
 
-const COATS = [
-  {label:'Roux tigré', base:'#e08a3c', dark:'#a9561a', pat:'tabby', eye:'#8fd15a'},
-  {label:'Noir', base:'#2a2527', dark:'#151213', pat:'plain', eye:'#e8c13a'},
-  {label:'Gris tigré', base:'#9197a0', dark:'#5d626b', pat:'tabby', eye:'#e8b13a'},
-  {label:'Smoking', base:'#262224', dark:'#151213', pat:'tux', eye:'#8fd16a'},
-  {label:'Siamois', base:'#eadcc4', dark:'#5a4033', pat:'points', eye:'#5aa6e0'},
-  {label:'Calico', base:'#f4efe7', dark:'#2a2527', pat:'calico', eye:'#d9a43a'},
-  {label:'Blanc', base:'#f4efe7', dark:'#cfc6ba', pat:'plain', eye:'#5aa6e0'},
-  {label:'Crème', base:'#e9c38f', dark:'#c4914f', pat:'tabby', eye:'#c8a03a'}
-];
-const NAMES = ['Moustache','Pistache','Caramel','Réglisse','Biscotte','Noisette','Filou','Chaussette','Grisou','Mimine','Tigrou','Praline','Pompon','Sushi','Gribouille','Plume','Cookie','Mistigri','Croquette','Nougat'];
-const CHATTER = ['Miaou','Mrrp ?','Miaaa…','Mrrr','Mew'];
-const HINTS = {
-  pet:'Clique sur un chat pour le caresser (pas trop !), sur un jouet pour le lancer, ou sur deux chats qui se chamaillent pour les séparer.',
-  laser:'Promène le pointeur laser dans la pièce.',
-  food:'Clique sur le sol pour poser une gamelle (3 max).',
-  ball:'Clique quelque part pour y lancer la pelote.',
-  scoop:'Clique sur une litière sale (ou une flaque) pour la nettoyer.'
-};
-const MAX_CATS = 9;
+<div id="creatorModal" class="modal" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="crTitle">
+    <div class="sheet-head"><h2 id="crTitle">Adopter un chat</h2></div>
+    <div class="cr-grid">
+      <div class="cr-preview"><canvas id="crPreview" width="220" height="220"></canvas><b id="crCoatName"></b></div>
+      <div class="cr-form">
+        <label for="crName">Nom</label>
+        <div class="row"><input id="crName" maxlength="14" autocomplete="off" data-autofocus><button id="crRandom" class="ghost">Au hasard</button></div>
+        <span class="lbl">Pelage</span>
+        <div id="crCoats" class="coats"></div>
+        <button id="crUnlock" class="buy" hidden></button>
+        <span class="lbl">Voix (clique pour écouter)</span>
+        <div id="crVoices" class="chips"></div>
+        <span class="lbl">Caractère</span>
+        <div id="crTraits" class="chips"></div>
+        <small id="crTraitDesc" class="muted"></small>
+      </div>
+    </div>
+    <p id="crMsg"></p>
+    <div class="sheet-foot"><button id="crCancel" class="ghost">Annuler</button><button id="crAdopt" class="primary">Adopter</button></div>
+  </div>
+</div>
 
-let W = 0, H = 0, floorTop = 0, sizeK = 1;
-let tool = 'pet';
-const cats = [], bowls = [], fx = [];
-const laser = {on:false, x:0, y:0};
-const stars = Array.from({length:22}, () => [Math.random(), Math.random(), Math.random()]);
-const ball = {x:0, y:0, vx:0, vy:0, z:0, vz:0, rot:0};
-const box = {x:0, y:0, occupant:null};
-const litters = [{fx:.09, fy:.78, x:0, y:0, dirt:0, clumps:[], user:null}, {fx:.93, fy:.8, x:0, y:0, dirt:0, clumps:[], user:null}];
-const puddles = [];
-const fountain = {x:0, y:0, users:[null, null]};
+<div id="achModal" class="modal" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="achH">
+    <div class="sheet-head"><h2 id="achH">Succès</h2><span id="achSummary" class="muted"></span><button class="x" data-close aria-label="Fermer">×</button></div>
+    <ul id="achList"></ul>
+  </div>
+</div>
 
-/* ---------- toys: a squeaky mouse, a jingle ball and a crinkly fish ---------- */
-const toys = [];
-function initToys(){
-  toys.length = 0;
-  [['mouse', .38, .85], ['bell', .62, .7], ['fish', .2, .5]].forEach(([kind, u, v]) =>
-    toys.push({kind, x: W * u, y: floorTop + (H - floorTop) * v, vx: 0, vy: 0, rot: 0, face: 1}));
-}
-function updateToys(dt){
-  const f = Math.pow(.3, dt);
-  for (const t of toys){
-    t.x += t.vx * dt; t.y += t.vy * dt; t.vx *= f; t.vy *= f;
-    if (t.x < 14){ t.x = 14; t.vx = Math.abs(t.vx); }
-    if (t.x > W - 14){ t.x = W - 14; t.vx = -Math.abs(t.vx); }
-    if (t.y < minY() - 4){ t.y = minY() - 4; t.vy = Math.abs(t.vy); }
-    if (t.y > H - 8){ t.y = H - 8; t.vy = -Math.abs(t.vy); }
-    if (Math.abs(t.vx) > 5) t.face = t.vx > 0 ? 1 : -1;
-    t.rot += t.vx * dt / 6;
-  }
-}
-function flickToy(t, power = 1){
-  const a = Math.random() * Math.PI * 2, v = rand(150, 260) * power;
-  t.vx = Math.cos(a) * v; t.vy = Math.sin(a) * v * .6; toySound(t);
-}
+<div id="roomsModal" class="modal" hidden>
+  <div class="sheet wide" role="dialog" aria-modal="true" aria-labelledby="roomsH">
+    <div class="sheet-head"><h2 id="roomsH">Les pièces</h2><button class="x" data-close aria-label="Fermer">×</button></div>
+    <p class="muted" style="margin:0">Débloque de nouvelles pièces avec tes succès et les duchats gagnés. Tes chats et tes meubles déménagent avec toi.</p>
+    <div id="roomsList"></div>
+  </div>
+</div>
 
-/* ---------- squabbles ---------- */
-const fights = [];
-function startFight(a, b){
-  const f = {a, b, x: (a.x + b.x) / 2, y: clamp((a.y + b.y) / 2, minY(), H - 16), aLeft: a.x < b.x,
-    heat: rand(.15, .35), drift: rand(-.03, .07), phase: 'stare', brawlT: 0, hissT: rand(.6, 1.4), warned: false, alarmed: false};
-  for (const c of [a, b]){ setState(c, 'fight'); c.fight = f; }
-  fights.push(f);
-  say(a, pick(['Grrr…', 'Grrr ?!']), 1.6);
-}
-function endFight(f, mode){
-  const i = fights.indexOf(f); if (i >= 0) fights.splice(i, 1);
-  const s = scaleAt(f.y);
-  [f.a, f.b].forEach((c, k) => {
-    c.fight = null; c.hop = 0; c.fightCd = rand(25, 45);
-    const side = (k === 0) === f.aLeft ? -1 : 1;
-    c.tx = clamp(f.x + side * rand(110, 190) * s, 30, W - 30); c.ty = clamp(f.y + rand(-30, 30) * s, minY(), H - 16);
-    if (mode === 'calm') setState(c, 'wander');
-    else { setState(c, 'flee', 4); c.happy = Math.max(0, c.happy - (mode === 'exhausted' ? 15 : 3)); }
-  });
-  if (mode === 'calm') say(f.a, 'Hmpf.', 1.5);
-  else if (mode === 'separated'){ say(f.a, 'Pfff !', 1.6); say(f.b, 'Pfff !', 1.6); sparkle(f.x, f.y - 30 * s, s); showHint(`${f.a.name} et ${f.b.name} sont séparés. Ils vont se calmer.`); }
-  else { say(f.a, 'Kssss !', 1.6); showHint(`${f.a.name} et ${f.b.name} se sont battus… ils sont tout vexés.`); }
-}
-function updateFights(dt){
-  const now = performance.now() / 1000;
-  for (const f of [...fights]){
-    const s = scaleAt(f.y);
-    const ax = f.x + (f.aLeft ? -1 : 1) * 24 * s, bx = f.x + (f.aLeft ? 1 : -1) * 24 * s;
-    const ra = moveTo(f.a, ax, f.y, 90, dt), rb = moveTo(f.b, bx, f.y, 90, dt);
-    if (!(ra && rb)) continue;
-    f.a.dir = f.aLeft ? 1 : -1; f.b.dir = -f.a.dir; f.a.moving = f.b.moving = false;
-    const calm = ((f.a.patience + f.b.patience) / 2 - 5) * .006;
-    f.heat = clamp(f.heat + dt * (f.drift + rand(-.08, .08) - calm), 0, 1);
-    f.phase = f.heat < .5 ? 'stare' : f.heat < .8 ? 'scuffle' : 'brawl';
-    f.hissT -= dt;
-    if (f.phase === 'stare'){
-      f.a.hop = f.b.hop = 0;
-      if (f.hissT <= 0){ f.hissT = rand(1.2, 2.2); say(pick([f.a, f.b]), pick(['Grrr…', 'Ssss !', 'Mrrraow…'])); }
-      if (f.heat < .3 && Math.random() < dt * .25){ endFight(f, 'calm'); continue; }
-    } else if (f.phase === 'scuffle'){
-      f.a.hop = Math.max(0, Math.sin(now * 11)) * 6 * s; f.b.hop = Math.max(0, Math.sin(now * 11 + 1.6)) * 6 * s;
-      if (f.hissT <= 0){ f.hissT = rand(.5, 1); swat(); say(pick([f.a, f.b]), pick(['Kss !', 'Ssss !', 'Mrrraow !']), 1); }
-      if (!f.warned){ f.warned = true; showHint(`${f.a.name} et ${f.b.name} se chamaillent… Clique dessus pour les séparer !`); }
-      f.a.happy = Math.max(0, f.a.happy - dt); f.b.happy = Math.max(0, f.b.happy - dt);
-    } else {
-      f.brawlT += dt;
-      if (f.hissT <= 0){ f.hissT = rand(.25, .5); if (Math.random() < .55) swat(); else yowl(pick([f.a, f.b])); }
-      if (!f.alarmed){ f.alarmed = true; showHint(`Bagarre entre ${f.a.name} et ${f.b.name} ! Clique sur le nuage pour les séparer.`); }
-      f.a.happy = Math.max(0, f.a.happy - dt * 4); f.b.happy = Math.max(0, f.b.happy - dt * 4);
-      if (Math.random() < dt * 6) fx.push({x: f.x + rand(-30, 30) * s, y: f.y - rand(10, 50) * s, vx: rand(-40, 40), vy: rand(-40, -10), life: .8, size: rand(9, 13) * s, ch: '✶', col: '#e8e0d0'});
-      if (f.brawlT > 12){ endFight(f, 'exhausted'); continue; }
-    }
-  }
-}
-function sparkle(x, y, s){ for (let i = 0; i < 6; i++) fx.push({x: x + rand(-20, 20) * s, y: y + rand(-10, 5) * s, vx: rand(-20, 20), vy: rand(-50, -25), life: 1, size: rand(12, 18) * s, ch: '✦', col: '#bfe8ff'}); }
-const tree = {x:0, y:0, spots:[{dx:-24, dy:-78, cat:null}, {dx:8, dy:-152, cat:null}]};
-const sillSpots = [{kind:'sill', u:.28, cat:null}, {kind:'sill', u:.72, cat:null}];
-const winGeom = () => ({wx: W * .62, wy: floorTop * .14, ww: Math.min(W * .26, 230), wh: floorTop * .62});
-const catScale = c => c.onTree ? scaleAt(c.pKind === 'sill' ? minY() : tree.y) : scaleAt(c.y);
-const asleep = c => c.state === 'sleep' || (c.state === 'perch' && c.perchSleep);
-const spotPos = sp => {
-  if (sp.kind === 'sill'){ const g = winGeom(); return {x: g.wx + g.ww * sp.u, y: g.wy + g.wh + 4}; }
-  const s = scaleAt(tree.y); return {x: tree.x + sp.dx * s, y: tree.y + sp.dy * s};
-};
-const spotBase = sp => {
-  if (sp.kind === 'sill'){ const p = spotPos(sp); return {x: p.x + 24 * scaleAt(minY()), y: minY() + 2}; }
-  return {x: tree.x + 32 * scaleAt(tree.y), y: tree.y + 6};
-};
-function jump(c, to, up){
-  c.jFrom = {x: c.x, y: c.y}; c.jTo = to; c.jT = 0; c.jUp = up;
-  c.dir = to.x > c.x ? 1 : -1; c.onTree = true; c.state = 'jump'; c.moving = true;
-  if (up && c.pKind !== 'sill') climbSound();
-}
-function jumpDown(c){
-  if (c.spot){ c.spot.cat = null; c.spot = null; }
-  const side = Math.random() < .5 ? -1 : 1;
-  if (c.pKind === 'sill'){
-    const s = scaleAt(minY());
-    jump(c, {x: clamp(c.x + side * rand(30, 60) * s, 30, W - 30), y: clamp(minY() + rand(4, 24) * s, minY(), H - 16)}, false);
-    return;
-  }
-  const s = scaleAt(tree.y);
-  jump(c, {x: clamp(tree.x + side * rand(55, 85) * s, 30, W - 30), y: clamp(tree.y + rand(10, 30) * s, minY(), H - 16)}, false);
-}
-
-/* ---------- day & night: starts at the viewer's real time, one full day = 4 minutes ---------- */
-const DAY_LEN = 240;
-const start = new Date();
-let dayPhase = (start.getHours() + start.getMinutes() / 60) / 24, skipTo = null, daylight = 0;
-const hexRGB = h => { const n = parseInt(h.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; };
-const mix = (a, b, t) => { const A = hexRGB(a), B = hexRGB(b); return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * t).toString(16).padStart(2, '0')).join(''); };
-const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
-const sunHeight = () => -Math.cos(dayPhase * Math.PI * 2);
-function updateDay(dt){
-  if (skipTo !== null){ dayPhase += dt * .22; if (dayPhase >= skipTo){ dayPhase = skipTo; skipTo = null; } }
-  else dayPhase += dt / DAY_LEN;
-  if (dayPhase >= 1){ dayPhase -= 1; if (skipTo !== null) skipTo -= 1; }
-  daylight = smooth(-.15, .3, sunHeight());
-}
-
-/* ---------- birds passing the window (daytime only) ---------- */
-const birds = [];
-let birdT = 4;
-function updateBirds(dt){
-  birdT -= dt;
-  if (birdT <= 0){
-    birdT = rand(5, 12);
-    if (daylight > .5 && birds.length < 3){
-      const dir = Math.random() < .5 ? 1 : -1, sp = rand(.18, .3), v = rand(.15, .5);
-      const n = Math.random() < .3 ? 2 + Math.floor(Math.random() * 2) : 1;
-      for (let i = 0; i < n; i++) birds.push({u: dir > 0 ? -.15 - i * .14 : 1.15 + i * .14, v: v + rand(-.08, .08), dir, sp, ph: rand(0, 6), col: pick(['#3a3340', '#5b4a3a', '#2f4b6b'])});
-      birdChirp(); birdAlert();
-    }
-  }
-  for (let i = birds.length - 1; i >= 0; i--){
-    const b = birds[i]; b.u += b.dir * b.sp * dt; b.ph += dt * 14;
-    if (b.u < -.6 || b.u > 1.6) birds.splice(i, 1);
-  }
-}
-function birdAlert(){
-  for (const c of cats){
-    if (c.state === 'perch' && c.pKind === 'sill'){
-      if (c.perchSleep && Math.random() < .5) c.perchSleep = false;
-      if (!c.perchSleep){ c.timer = Math.max(c.timer, 6); c.twitch = 3; setTimeout(() => say(c, pick(['Ek-ek-ek !', 'Un oiseau !', 'Mek-mek !'])), rand(200, 900)); }
-    } else if ((c.state === 'idle' || c.state === 'wander') && c.lazy < .7 && Math.random() < .35){
-      const sp = sillSpots.find(p => !p.cat);
-      if (sp){ sp.cat = c; c.spot = sp; setState(c, 'totree'); say(c, 'Un oiseau ?!', 1.4); }
-    }
-  }
-}
-function drawBirds(wx, wy, ww, wh){
-  const s = Math.min(ww, wh) / 180;
-  ctx.lineCap = 'round';
-  for (const b of birds){
-    const x = wx + ww * b.u, y = wy + wh * b.v + Math.sin(b.ph * .3) * 4 * s, flap = Math.sin(b.ph);
-    ctx.strokeStyle = b.col; ctx.fillStyle = b.col; ctx.lineWidth = 2.2 * s + .6;
-    ctx.beginPath(); ctx.moveTo(x - 9 * s, y - flap * 6 * s);
-    ctx.quadraticCurveTo(x - 4 * s, y - 2 * s - flap * 2 * s, x, y);
-    ctx.quadraticCurveTo(x + 4 * s, y - 2 * s - flap * 2 * s, x + 9 * s, y - flap * 6 * s); ctx.stroke();
-    ctx.beginPath(); ctx.ellipse(x, y + s, 3 * s, 2 * s, 0, 0, Math.PI * 2); ctx.fill();
-  }
-}
-
-/* ---------- sounds (synthesized, start after the first click) ---------- */
-let actx = null, soundOn = true;
-function audio(){
-  if (!soundOn) return null;
-  try {
-    if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
-    if (actx.state === 'suspended') actx.resume();
-  } catch (e) { return null; }
-  return actx;
-}
-const ready = () => soundOn && actx && actx.state === 'running';
-/* Each cat gets its own voice: a melody shape, a pitch, a speed and a timbre. */
-const VOICES = [
-  {shape:'classic',   label:'classique',  words:['Miaou', 'Miaou ?', 'Mew']},
-  {shape:'plaintive', label:'plaintive',  words:['Miaaaou…', 'Miaaa…', 'Mééé…']},
-  {shape:'chirp',     label:'roulée',     words:['Brrrt ?', 'Prrrip !', 'Mrrrr ?']},
-  {shape:'squeak',    label:'couinante',  words:['Mii ?', 'Mip !', 'Mi ?']},
-  {shape:'double',    label:'bavarde',    words:['Mi-miaou !', 'Mia-mia !', 'Mrr-miaou']},
-  {shape:'low',       label:'grave',      words:['Mraaow', 'Mrouuu', 'Rraow']}
-];
-function makeVoice(){
-  const v = pick(VOICES);
-  return {
-    ...v,
-    pitch: v.shape === 'low' ? rand(.62, .75) : v.shape === 'squeak' ? rand(1.3, 1.6) : rand(.85, 1.25),
-    len: rand(.85, 1.25), vib: rand(4, 7),
-    wave: v.shape === 'squeak' ? 'square' : Math.random() < .5 ? 'sawtooth' : 'triangle'
-  };
-}
-function voiceNote(a, v, t, d, p){
-  const o = a.createOscillator(), f = a.createBiquadFilter(), g = a.createGain();
-  o.type = v.wave; f.type = 'bandpass'; f.Q.value = v.shape === 'squeak' ? 6 : 2.5;
-  const F = o.frequency;
-  switch (v.shape){
-    case 'plaintive': F.setValueAtTime(380 * p, t); F.linearRampToValueAtTime(700 * p, t + d * .6); F.linearRampToValueAtTime(420 * p, t + d); break;
-    case 'squeak':    F.setValueAtTime(600 * p, t); F.exponentialRampToValueAtTime(1000 * p, t + d); break;
-    case 'low':       F.setValueAtTime(380 * p, t); F.linearRampToValueAtTime(520 * p, t + d * .25); F.exponentialRampToValueAtTime(280 * p, t + d); break;
-    case 'chirp':     F.setValueAtTime(520 * p, t); F.linearRampToValueAtTime(720 * p, t + d * .3); F.linearRampToValueAtTime(600 * p, t + d); break;
-    default:          F.setValueAtTime(420 * p, t); F.linearRampToValueAtTime(780 * p, t + d * .35); F.linearRampToValueAtTime(470 * p, t + d);
-  }
-  f.frequency.setValueAtTime(900 * p, t); f.frequency.linearRampToValueAtTime(2300 * p, t + d * .4); f.frequency.linearRampToValueAtTime(1000 * p, t + d);
-  const lfo = a.createOscillator(), lg = a.createGain();
-  lfo.frequency.value = v.shape === 'chirp' ? 22 : v.vib; lg.gain.value = (v.shape === 'chirp' ? 60 : 12) * p;
-  lfo.connect(lg).connect(F);
-  const peak = v.wave === 'triangle' ? .2 : v.wave === 'square' ? .06 : .12;
-  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(peak, t + .04); g.gain.setValueAtTime(peak, t + d * .6); g.gain.exponentialRampToValueAtTime(.001, t + d);
-  o.connect(f).connect(g).connect(a.destination);
-  o.start(t); lfo.start(t); o.stop(t + d + .05); lfo.stop(t + d + .05);
-}
-function meow(c, kind = 'meow'){
-  if (!ready() || !c) return;
-  const v = c.voice, a = actx, t0 = a.currentTime;
-  const p = v.pitch * (kind === 'short' ? 1.2 : 1);
-  const d = (kind === 'short' ? .22 : kind === 'long' ? .75 : .48) * v.len;
-  if (v.shape === 'double' && kind !== 'short'){
-    voiceNote(a, v, t0, d * .5, p); voiceNote(a, v, t0 + d * .5 + .06, d * .55, p * 1.08);
-  } else voiceNote(a, v, t0, d, p);
-}
-function purr(pitch = 1){
-  if (!ready()) return; const a = actx, t = a.currentTime, d = 1.5;
-  const o = a.createOscillator(), f = a.createBiquadFilter(), am = a.createGain(), lfo = a.createOscillator(), lg = a.createGain(), g = a.createGain();
-  o.type = 'sawtooth'; o.frequency.value = 46 * pitch; f.type = 'lowpass'; f.frequency.value = 360;
-  am.gain.value = .5; lfo.frequency.value = 24; lg.gain.value = .5;
-  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.16, t + .2); g.gain.setValueAtTime(.16, t + d - .4); g.gain.linearRampToValueAtTime(0, t + d);
-  lfo.connect(lg).connect(am.gain); o.connect(f).connect(am).connect(g).connect(a.destination);
-  o.start(t); lfo.start(t); o.stop(t + d); lfo.stop(t + d);
-}
-/* the "ek-ek-ek" cats make at birds: a fast run of tiny clicky chirps */
-function chatter(c){
-  if (!ready()) return;
-  const a = actx, p = c ? c.voice.pitch : 1, n = 6 + Math.floor(Math.random() * 4), gap = rand(.065, .085);
-  for (let i = 0; i < n; i++){
-    const t = a.currentTime + i * gap + rand(-.006, .006);
-    const o = a.createOscillator(), f = a.createBiquadFilter(), g = a.createGain();
-    const f0 = (850 + (i % 2) * 120) * p * rand(.95, 1.05);
-    o.type = 'square'; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f0 * .7, t + .04);
-    f.type = 'bandpass'; f.frequency.value = 1600 * p; f.Q.value = 3;
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.09, t + .004); g.gain.exponentialRampToValueAtTime(.001, t + .045);
-    o.connect(f).connect(g).connect(a.destination); o.start(t); o.stop(t + .05);
-  }
-}
-/* scooping: a sandy scrape, a few clumps dropping in the bin, then a bright little chime */
-function noiseBurst(a, t, d, type, freq, q, vol){
-  const n = Math.floor(a.sampleRate * d), buf = a.createBuffer(1, n, a.sampleRate), ch = buf.getChannelData(0);
-  for (let i = 0; i < n; i++) ch[i] = Math.random() * 2 - 1;
-  const s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
-  s.buffer = buf; f.type = type; f.frequency.value = freq; f.Q.value = q;
-  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + d * .15); g.gain.exponentialRampToValueAtTime(.001, t + d);
-  s.connect(f).connect(g).connect(a.destination); s.start(t);
-  return f;
-}
-function cleanSound(puddle){
-  if (!ready()) return; const a = actx, t = a.currentTime;
-  if (puddle){
-    for (let k = 0; k < 2; k++) noiseBurst(a, t + k * .2, .18, 'bandpass', 900, .8, .07);
-  } else {
-    const f = noiseBurst(a, t, .35, 'bandpass', 1200, 1, .1);
-    f.frequency.setValueAtTime(700, t); f.frequency.linearRampToValueAtTime(2200, t + .3);
-    for (let k = 0; k < 4; k++){
-      const tt = t + .4 + k * rand(.05, .09), o = a.createOscillator(), g = a.createGain(), f0 = rand(180, 300);
-      o.type = 'triangle'; o.frequency.setValueAtTime(f0, tt); o.frequency.exponentialRampToValueAtTime(f0 * .6, tt + .06);
-      g.gain.setValueAtTime(0, tt); g.gain.linearRampToValueAtTime(.12, tt + .005); g.gain.exponentialRampToValueAtTime(.001, tt + .07);
-      o.connect(g).connect(a.destination); o.start(tt); o.stop(tt + .08);
-    }
-  }
-  const t2 = t + (puddle ? .45 : .8);
-  [1046.5, 1318.5, 1568].forEach((fr, i) => {
-    const tt = t2 + i * .08, o = a.createOscillator(), g = a.createGain();
-    o.type = 'sine'; o.frequency.value = fr;
-    g.gain.setValueAtTime(0, tt); g.gain.linearRampToValueAtTime(.07, tt + .01); g.gain.exponentialRampToValueAtTime(.001, tt + .35);
-    o.connect(g).connect(a.destination); o.start(tt); o.stop(tt + .4);
-  });
-}
-/* pouring kibble: a ring of the bowl, then a shower of tiny ticks that thins out */
-function kibbleSound(){
-  if (!ready()) return; const a = actx, t = a.currentTime;
-  [1180, 1770].forEach((fr, i) => {
-    const o = a.createOscillator(), g = a.createGain();
-    o.type = 'sine'; o.frequency.value = fr;
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(i ? .02 : .05, t + .005); g.gain.exponentialRampToValueAtTime(.001, t + .6);
-    o.connect(g).connect(a.destination); o.start(t); o.stop(t + .65);
-  });
-  for (let i = 0; i < 38; i++){
-    const tt = t + .02 + Math.pow(Math.random(), 1.6) * .75, o = a.createOscillator(), f = a.createBiquadFilter(), g = a.createGain();
-    const f0 = rand(1800, 4200);
-    o.type = 'square'; o.frequency.setValueAtTime(f0, tt); o.frequency.exponentialRampToValueAtTime(f0 * .6, tt + .015);
-    f.type = 'highpass'; f.frequency.value = 1500;
-    const v = rand(.02, .05) * (1 - (tt - t) / 1.1);
-    g.gain.setValueAtTime(0, tt); g.gain.linearRampToValueAtTime(v, tt + .002); g.gain.exponentialRampToValueAtTime(.0005, tt + .025);
-    o.connect(f).connect(g).connect(a.destination); o.start(tt); o.stop(tt + .03);
-  }
-}
-/* a quiet crunch of kibble, a few crackles close together */
-function crunch(c){
-  if (!ready()) return; const a = actx, t = a.currentTime, p = c ? c.voice.pitch : 1;
-  const n = 2 + Math.floor(Math.random() * 2);
-  for (let i = 0; i < n; i++) noiseBurst(a, t + i * rand(.025, .045), rand(.03, .06), 'bandpass', rand(1200, 2400) * (.85 + p * .15), 1.5, rand(.05, .08));
-}
-/* a lap of water: a quick rising "plip" with a tiny splash */
-function lap(c){
-  if (!ready()) return; const a = actx, t = a.currentTime, p = c ? c.voice.pitch : 1;
-  const o = a.createOscillator(), g = a.createGain(), f0 = rand(350, 500) * (.8 + p * .2);
-  o.type = 'sine'; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f0 * 2.6, t + .035);
-  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.07, t + .006); g.gain.exponentialRampToValueAtTime(.001, t + .05);
-  o.connect(g).connect(a.destination); o.start(t); o.stop(t + .06);
-  noiseBurst(a, t + .01, .04, 'bandpass', 2500, 2, .02);
-}
-function toySound(t){
-  if (!ready()) return; const a = actx, t0 = a.currentTime;
-  if (t.kind === 'mouse'){
-    for (let k = 0; k < 2; k++){
-      const tt = t0 + k * .14, o = a.createOscillator(), g = a.createGain();
-      o.type = 'sine'; o.frequency.setValueAtTime(2000, tt); o.frequency.linearRampToValueAtTime(2900, tt + .05); o.frequency.linearRampToValueAtTime(2200, tt + .11);
-      g.gain.setValueAtTime(0, tt); g.gain.linearRampToValueAtTime(.05, tt + .01); g.gain.exponentialRampToValueAtTime(.001, tt + .12);
-      o.connect(g).connect(a.destination); o.start(tt); o.stop(tt + .13);
-    }
-  } else if (t.kind === 'bell'){
-    for (let k = 0; k < 3; k++) for (let j = 0; j < 3; j++){
-      const tt = t0 + k * rand(.06, .1), o = a.createOscillator(), g = a.createGain();
-      o.type = 'sine'; o.frequency.value = rand(3200, 5400);
-      g.gain.setValueAtTime(0, tt); g.gain.linearRampToValueAtTime(.025, tt + .003); g.gain.exponentialRampToValueAtTime(.001, tt + .25);
-      o.connect(g).connect(a.destination); o.start(tt); o.stop(tt + .26);
-    }
-  } else {
-    for (let k = 0; k < 6; k++) noiseBurst(a, t0 + k * rand(.02, .05), rand(.02, .04), 'highpass', 3800, .7, rand(.04, .07));
-  }
-}
-/* playtime: a soft paw tap, and a happy little rolled "brrrp" */
-function pawTap(){
-  if (!ready()) return; const a = actx, t = a.currentTime;
-  const o = a.createOscillator(), g = a.createGain();
-  o.type = 'sine'; o.frequency.setValueAtTime(160, t); o.frequency.exponentialRampToValueAtTime(70, t + .08);
-  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.12, t + .005); g.gain.exponentialRampToValueAtTime(.001, t + .1);
-  o.connect(g).connect(a.destination); o.start(t); o.stop(t + .11);
-  noiseBurst(a, t, .05, 'lowpass', 600, .8, .05);
-}
-function playTrill(c){
-  if (!ready()) return;
-  const a = actx, t = a.currentTime + .05, p = c ? c.voice.pitch : 1, d = rand(.16, .24);
-  const o = a.createOscillator(), f = a.createBiquadFilter(), g = a.createGain(), l = a.createOscillator(), lg = a.createGain();
-  o.type = 'triangle'; o.frequency.setValueAtTime(520 * p, t); o.frequency.linearRampToValueAtTime(820 * p, t + d);
-  l.frequency.value = 26; lg.gain.value = 70 * p; l.connect(lg).connect(o.frequency);
-  f.type = 'bandpass'; f.frequency.value = 1500 * p; f.Q.value = 1.2;
-  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.16, t + .02); g.gain.exponentialRampToValueAtTime(.001, t + d);
-  o.connect(f).connect(g).connect(a.destination);
-  o.start(t); l.start(t); o.stop(t + d + .03); l.stop(t + d + .03);
-}
-/* climbing: claws scrabbling up the sisal rope, then a soft landing thump */
-function climbSound(){
-  if (!ready()) return; const a = actx, t = a.currentTime;
-  for (let k = 0; k < 5; k++) noiseBurst(a, t + k * rand(.06, .09), rand(.04, .06), 'bandpass', rand(2200, 3200), 1.4, rand(.06, .09));
-}
-function landSound(soft){
-  if (!ready()) return; const a = actx, t = a.currentTime;
-  const o = a.createOscillator(), g = a.createGain();
-  o.type = 'sine'; o.frequency.setValueAtTime(soft ? 140 : 110, t); o.frequency.exponentialRampToValueAtTime(50, t + .12);
-  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(soft ? .1 : .16, t + .005); g.gain.exponentialRampToValueAtTime(.001, t + .15);
-  o.connect(g).connect(a.destination); o.start(t); o.stop(t + .16);
-  noiseBurst(a, t, .06, 'lowpass', 400, .7, soft ? .04 : .07);
-}
-/* a sleeping cat: a slow breath in, and a tiny rumbling snore on the way out */
-function snore(c){
-  if (!ready()) return;
-  const a = actx, t = a.currentTime, p = c ? c.voice.pitch : 1;
-  const inhale = noiseBurst(a, t, 1, 'lowpass', 500, .6, .035);
-  inhale.frequency.setValueAtTime(300, t); inhale.frequency.linearRampToValueAtTime(700, t + .9);
-  const t2 = t + 1.05, d = 1.1;
-  const o = a.createOscillator(), am = a.createGain(), l = a.createOscillator(), lg = a.createGain(), f = a.createBiquadFilter(), g = a.createGain();
-  o.type = 'sawtooth'; o.frequency.value = 55 * p; f.type = 'lowpass'; f.frequency.value = 320;
-  am.gain.value = .5; l.frequency.value = 18; lg.gain.value = .5; l.connect(lg).connect(am.gain);
-  g.gain.setValueAtTime(0, t2); g.gain.linearRampToValueAtTime(.07, t2 + .25); g.gain.linearRampToValueAtTime(0, t2 + d);
-  o.connect(f).connect(am).connect(g).connect(a.destination);
-  o.start(t2); l.start(t2); o.stop(t2 + d); l.stop(t2 + d);
-  const ex = noiseBurst(a, t2, d, 'lowpass', 400, .6, .025);
-  ex.frequency.setValueAtTime(600, t2); ex.frequency.linearRampToValueAtTime(250, t2 + d);
-}
-/* the cardboard box: a hollow "bonk" and a papery rustle, a bit longer when climbing in */
-function boxSound(enter){
-  if (!ready()) return; const a = actx, t = a.currentTime;
-  noiseBurst(a, t, .14, 'bandpass', 240, 5, enter ? .22 : .15);
-  const n = enter ? 5 : 3;
-  for (let k = 0; k < n; k++) noiseBurst(a, t + .05 + k * rand(.05, .09), rand(.05, .09), 'bandpass', rand(700, 1300), 1.1, rand(.05, .08));
-  box.shakeUntil = performance.now() + 450;
-}
-/* sulking: an annoyed huff through the nose, then a low grumbling "mmrrmph" that sinks */
-function sulk(c){
-  if (!ready()) return;
-  const a = actx, t = a.currentTime, p = c ? c.voice.pitch : 1;
-  noiseBurst(a, t, .22, 'lowpass', 900, .7, .09);
-  const t2 = t + .18, d = rand(.45, .6);
-  const o = a.createOscillator(), f = a.createBiquadFilter(), g = a.createGain(), l = a.createOscillator(), lg = a.createGain();
-  o.type = 'sawtooth'; o.frequency.setValueAtTime(310 * p, t2); o.frequency.exponentialRampToValueAtTime(170 * p, t2 + d);
-  l.frequency.value = 14; lg.gain.value = 10 * p; l.connect(lg).connect(o.frequency);
-  f.type = 'lowpass'; f.frequency.setValueAtTime(900 * p, t2); f.frequency.linearRampToValueAtTime(450 * p, t2 + d); f.Q.value = 3;
-  g.gain.setValueAtTime(0, t2); g.gain.linearRampToValueAtTime(.1, t2 + .06); g.gain.setValueAtTime(.09, t2 + d * .6); g.gain.exponentialRampToValueAtTime(.001, t2 + d);
-  o.connect(f).connect(g).connect(a.destination);
-  o.start(t2); l.start(t2); o.stop(t2 + d + .05); l.stop(t2 + d + .05);
-}
-/* a happy cat: a soft rolled "mrrr" that lifts into a bright little "-ip!" */
-function happySound(c){
-  if (!ready()) return;
-  const a = actx, t = a.currentTime, p = c ? c.voice.pitch : 1;
-  [[0, .16, 480, 700, 45], [.2, .22, 620, 980, 15]].forEach(([d0, d, f1, f2, vib]) => {
-    const tt = t + d0, o = a.createOscillator(), f = a.createBiquadFilter(), g = a.createGain(), l = a.createOscillator(), lg = a.createGain();
-    o.type = 'triangle'; o.frequency.setValueAtTime(f1 * p, tt); o.frequency.exponentialRampToValueAtTime(f2 * p, tt + d);
-    l.frequency.value = 20; lg.gain.value = vib * p; l.connect(lg).connect(o.frequency);
-    f.type = 'bandpass'; f.frequency.value = 1400 * p; f.Q.value = 1;
-    g.gain.setValueAtTime(0, tt); g.gain.linearRampToValueAtTime(.15, tt + .02); g.gain.exponentialRampToValueAtTime(.001, tt + d);
-    o.connect(f).connect(g).connect(a.destination);
-    o.start(tt); l.start(tt); o.stop(tt + d + .03); l.stop(tt + d + .03);
-  });
-}
-function cheer(c){
-  c.bubble = pick(['Mrrrip ♪', 'Mrrr-iiip !', 'Brrrip ♪']); c.bubbleT = 1.6;
-  happySound(c);
-  const s = catScale(c);
-  for (let i = 0; i < 2; i++) fx.push({x: c.x + rand(-12, 12) * s, y: c.y - 62 * s, vx: rand(-10, 10), vy: rand(-40, -28), life: 1.1, size: rand(11, 15) * s});
-}
-/* a hungry cat: a quick "mi-" then a long, pleading "-AAAOU" that climbs and wavers */
-function hungrySound(c){
-  if (!ready() || !c) return;
-  const a = actx, t = a.currentTime, v = c.voice, p = v.pitch;
-  voiceNote(a, v, t, .14 * v.len, p * 1.15);
-  const t2 = t + .18, d = .85 * v.len;
-  const o = a.createOscillator(), f = a.createBiquadFilter(), g = a.createGain(), l = a.createOscillator(), lg = a.createGain();
-  o.type = 'sawtooth';
-  o.frequency.setValueAtTime(450 * p, t2); o.frequency.linearRampToValueAtTime(820 * p, t2 + d * .45);
-  o.frequency.linearRampToValueAtTime(900 * p, t2 + d * .7); o.frequency.linearRampToValueAtTime(560 * p, t2 + d);
-  l.frequency.value = 6; lg.gain.value = 18 * p; l.connect(lg).connect(o.frequency);
-  f.type = 'bandpass'; f.Q.value = 2.2;
-  f.frequency.setValueAtTime(1000 * p, t2); f.frequency.linearRampToValueAtTime(2600 * p, t2 + d * .5); f.frequency.linearRampToValueAtTime(1200 * p, t2 + d);
-  g.gain.setValueAtTime(0, t2); g.gain.linearRampToValueAtTime(.14, t2 + .06); g.gain.setValueAtTime(.14, t2 + d * .75); g.gain.exponentialRampToValueAtTime(.001, t2 + d);
-  o.connect(f).connect(g).connect(a.destination);
-  o.start(t2); l.start(t2); o.stop(t2 + d + .05); l.stop(t2 + d + .05);
-}
-let lastHungerHint = -1e9;
-/* a thirsty cat: a short, slightly raspy meow, then dry little tongue clicks ("mlem mlem") */
-function thirstySound(c){
-  if (!ready() || !c) return;
-  const a = actx, t = a.currentTime, v = c.voice, p = v.pitch, d = .3 * v.len;
-  voiceNote(a, v, t, d, p * 1.1);
-  noiseBurst(a, t, d, 'bandpass', 2000 * p, 1.5, .03);
-  for (let k = 0; k < 3; k++){
-    const tt = t + d + .1 + k * rand(.11, .15), o = a.createOscillator(), g = a.createGain();
-    o.type = 'sine'; o.frequency.setValueAtTime(950 * p, tt); o.frequency.exponentialRampToValueAtTime(520 * p, tt + .03);
-    g.gain.setValueAtTime(0, tt); g.gain.linearRampToValueAtTime(.06, tt + .003); g.gain.exponentialRampToValueAtTime(.001, tt + .04);
-    o.connect(g).connect(a.destination); o.start(tt); o.stop(tt + .05);
-    noiseBurst(a, tt, .025, 'highpass', 3000, .8, .04);
-  }
-}
-function thirsty(c){
-  c.bubble = pick(['Mlem mlem…', 'Soif…', 'De l’eau ?']); c.bubbleT = 1.8;
-  thirstySound(c);
-}
-function swat(){
-  if (!ready()) return; const a = actx, t = actx.currentTime;
-  noiseBurst(a, t, .08, 'lowpass', 900, 1, .12); noiseBurst(a, t + .01, .03, 'highpass', 3000, 1, .05);
-}
-function yowl(c){
-  if (!ready()) return;
-  const a = actx, t = a.currentTime, p = c ? c.voice.pitch : 1, d = rand(.5, .8);
-  const o = a.createOscillator(), f = a.createBiquadFilter(), g = a.createGain(), l = a.createOscillator(), lg = a.createGain();
-  o.type = 'sawtooth'; o.frequency.setValueAtTime(300 * p, t); o.frequency.linearRampToValueAtTime(520 * p, t + d * .5); o.frequency.linearRampToValueAtTime(260 * p, t + d);
-  l.frequency.value = 9; lg.gain.value = 30 * p; l.connect(lg).connect(o.frequency);
-  f.type = 'bandpass'; f.frequency.value = 1200 * p; f.Q.value = 1.5;
-  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.1, t + .05); g.gain.setValueAtTime(.1, t + d * .7); g.gain.exponentialRampToValueAtTime(.001, t + d);
-  o.connect(f).connect(g).connect(a.destination);
-  o.start(t); l.start(t); o.stop(t + d + .05); l.stop(t + d + .05);
-}
-function birdChirp(){
-  if (!ready()) return; const a = actx, n = 2 + Math.floor(Math.random() * 3);
-  for (let i = 0; i < n; i++){
-    const t = a.currentTime + .1 + i * rand(.12, .18), o = a.createOscillator(), g = a.createGain(), f0 = rand(2600, 3600);
-    o.type = 'sine'; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f0 * 1.4, t + .06); o.frequency.exponentialRampToValueAtTime(f0 * .9, t + .1);
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.04, t + .01); g.gain.exponentialRampToValueAtTime(.001, t + .1);
-    o.connect(g).connect(a.destination); o.start(t); o.stop(t + .12);
-  }
-}
-function fart(c){
-  if (!ready()) return;
-  const a = actx, t = a.currentTime, p = c ? c.voice.pitch : 1, d = rand(.25, .45);
-  const o = a.createOscillator(), lfo = a.createOscillator(), lg = a.createGain(), f = a.createBiquadFilter(), g = a.createGain();
-  o.type = 'sawtooth'; o.frequency.setValueAtTime(95 * p, t); o.frequency.exponentialRampToValueAtTime(55 * p, t + d);
-  lfo.type = 'square'; lfo.frequency.value = rand(22, 34); lg.gain.value = 25 * p;
-  lfo.connect(lg).connect(o.frequency);
-  f.type = 'lowpass'; f.Q.value = 4; f.frequency.setValueAtTime(700, t); f.frequency.linearRampToValueAtTime(300, t + d);
-  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.22, t + .02); g.gain.setValueAtTime(.2, t + d * .7); g.gain.exponentialRampToValueAtTime(.001, t + d);
-  o.connect(f).connect(g).connect(a.destination);
-  o.start(t); lfo.start(t); o.stop(t + d + .05); lfo.stop(t + d + .05);
-}
-function scratch(){
-  if (!ready()) return; const a = actx;
-  for (let k = 0; k < 3; k++){
-    const t = a.currentTime + k * .16, n = Math.floor(a.sampleRate * .1), buf = a.createBuffer(1, n, a.sampleRate), ch = buf.getChannelData(0);
-    for (let i = 0; i < n; i++) ch[i] = Math.random() * 2 - 1;
-    const s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
-    s.buffer = buf; f.type = 'bandpass'; f.frequency.value = 1800; f.Q.value = 1.2;
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.08, t + .02); g.gain.exponentialRampToValueAtTime(.001, t + .1);
-    s.connect(f).connect(g).connect(a.destination); s.start(t);
-  }
-}
-function hiss(){
-  if (!ready()) return; const a = actx, t = a.currentTime, n = Math.floor(a.sampleRate * .5);
-  const buf = a.createBuffer(1, n, a.sampleRate), ch = buf.getChannelData(0);
-  for (let i = 0; i < n; i++) ch[i] = Math.random() * 2 - 1;
-  const s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
-  s.buffer = buf; f.type = 'highpass'; f.frequency.value = 2500;
-  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.1, t + .04); g.gain.exponentialRampToValueAtTime(.001, t + .5);
-  s.connect(f).connect(g).connect(a.destination); s.start(t);
-}
-
-function resize(){
-  const r = cv.getBoundingClientRect(), d = window.devicePixelRatio || 1;
-  W = r.width; H = r.height;
-  cv.width = Math.round(W * d); cv.height = Math.round(H * d);
-  ctx.setTransform(d, 0, 0, d, 0, 0);
-  floorTop = H * 0.5;
-  sizeK = clamp(W / 820, 0.62, 1.1);
-  for (const c of cats){ c.x = clamp(c.x, 30, W - 30); c.y = clamp(c.y, minY(), H - 16); }
-  box.x = W * .84; box.y = floorTop + (H - floorTop) * .32;
-  for (const L of litters){ L.x = W * L.fx; L.y = floorTop + (H - floorTop) * L.fy; }
-  fountain.x = W * .5; fountain.y = Math.max(minY() + 2, floorTop + (H - floorTop) * .1);
-  tree.x = W * .3; tree.y = Math.max(minY() + 4, floorTop + (H - floorTop) * .15);
-  ball.x = clamp(ball.x, 14, W - 14); ball.y = clamp(ball.y, minY() - 6, H - 10);
-}
-const minY = () => floorTop + 28;
-const scaleAt = y => (0.6 + 0.5 * clamp((y - floorTop) / (H - floorTop), 0, 1)) * sizeK;
-const randFloor = () => ({x: rand(40, W - 40), y: rand(minY(), H - 18)});
-
-function makeCat(){
-  const used = new Set(cats.map(c => c.name));
-  const free = NAMES.filter(n => !used.has(n));
-  const p = randFloor();
-  const c = {
-    name: pick(free.length ? free : NAMES), coat: pick(COATS),
-    x: p.x, y: p.y, dir: Math.random() < .5 ? -1 : 1,
-    state:'idle', timer: rand(1, 3), tx:0, ty:0, moving:false, phase: rand(0, 6),
-    happy: rand(45, 70), hunger: rand(10, 40), energy: rand(50, 100),
-    lazy: Math.random(), patience: 3 + Math.floor(Math.random() * 6),
-    pets: [], bubble:null, bubbleT:0, bowl:null, tailT: rand(0, 6),
-    voice: makeVoice(), batCd: 0, bats: 0, onTree: false, spot: null, perchSleep: false,
-    bladder: rand(0, 45), litter: null, complainT: 0,
-    thirst: rand(10, 45), fspot: null
-  };
-  c.trait = c.lazy > .72 ? 'Paresseux' : c.patience <= 4 ? 'Susceptible' : c.lazy < .3 ? 'Joueur' : 'Câlin';
-  return c;
-}
-function say(c, t, d = 1.8){
-  c.bubble = t; c.bubbleT = d;
-  if (t.startsWith('Ek-') || t.startsWith('Mek-')) chatter(c);
-  else if (t.startsWith('Grr') || t.startsWith('Mrrraow')) yowl(c);
-  else if (t.startsWith('Ss') || t.startsWith('Kss')) hiss();
-  else if (t.startsWith('Slurp') || t.startsWith('Glou')){ lap(c); setTimeout(() => lap(c), 120); }
-  else if (t.startsWith('Prrrr') || t === 'Mrrrou') purr(c.voice.pitch);
-  else if (t.startsWith('Pfff') || t.startsWith('Hmpf') || t.startsWith('Bof')){
-    sulk(c);
-    const s = catScale(c);
-    for (let i = 0; i < 3; i++) fx.push({x: c.x + c.dir * rand(30, 40) * s, y: c.y - rand(34, 44) * s, vx: c.dir * rand(20, 45), vy: rand(-12, 4), life: .7, size: rand(7, 11) * s, ch: '●', col: 'rgba(225,225,235,.6)'});
-  }
-  else if (t.startsWith('!') || t.length <= 5) meow(c, 'short');
-  else if (t.startsWith('Miaa') || t.startsWith('Bonjour') || t.endsWith('…')) meow(c, 'long');
-  else if (t !== 'Pfiou…') meow(c);
-}
-function setState(c, s, t){
-  if (box.occupant === c && s !== 'box' && s !== 'tobox') box.occupant = null;
-  if (c.spot && s !== 'totree'){ c.spot.cat = null; c.spot = null; }
-  if (c.litter && s !== 'tolitter' && s !== 'litter'){ c.litter.user = null; c.litter = null; }
-  if (c.fspot != null && s !== 'todrink' && s !== 'drink'){ fountain.users[c.fspot] = null; c.fspot = null; }
-  c.state = s; c.timer = t ?? 0; c.moving = false;
-}
-function updateBall(dt){
-  const f = Math.pow(.35, dt);
-  ball.x += ball.vx * dt; ball.y += ball.vy * dt; ball.vx *= f; ball.vy *= f;
-  ball.vz -= 900 * dt; ball.z += ball.vz * dt;
-  if (ball.z < 0){ ball.z = 0; ball.vz = Math.abs(ball.vz) > 60 ? -ball.vz * .45 : 0; }
-  if (ball.x < 14){ ball.x = 14; ball.vx = Math.abs(ball.vx); }
-  if (ball.x > W - 14){ ball.x = W - 14; ball.vx = -Math.abs(ball.vx); }
-  if (ball.y < minY() - 6){ ball.y = minY() - 6; ball.vy = Math.abs(ball.vy); }
-  if (ball.y > H - 10){ ball.y = H - 10; ball.vy = -Math.abs(ball.vy); }
-  ball.rot += ball.vx * dt / 9;
-}
-
-function moveTo(c, tx, ty, speed, dt){
-  const dx = tx - c.x, dy = ty - c.y, d = Math.hypot(dx, dy);
-  if (d < 5){ c.moving = false; return true; }
-  const v = speed * scaleAt(c.y) * dt, st = Math.min(d, v);
-  c.x += dx / d * st; c.y += dy / d * st;
-  if (Math.abs(dx) > 2) c.dir = dx > 0 ? 1 : -1;
-  c.moving = true; c.phase += st * 0.18;
-  return false;
-}
-
-function pet(c, px){
-  c.happy = Math.min(100, c.happy);
-  if (c.state === 'sleep'){ setState(c, 'idle', 2.5); say(c, 'Mrr… ?'); c.happy += 4; return; }
-  if (c.state === 'perch' && c.perchSleep){ c.perchSleep = false; c.timer = Math.max(c.timer, 4); say(c, 'Mrr… ?'); c.happy += 4; return; }
-  const now = performance.now();
-  c.pets = c.pets.filter(t => now - t < 3500); c.pets.push(now);
-  if (c.pets.length > c.patience){
-    c.pets = []; c.happy = Math.max(0, c.happy - 12);
-    say(c, 'Pfff !', 2);
-    if (c.onTree){ jumpDown(c); return; }
-    const far = randFloor(); far.x = c.x < W / 2 ? rand(W * .65, W - 40) : rand(40, W * .35);
-    c.tx = far.x; c.ty = far.y; setState(c, 'flee', 4);
-    return;
-  }
-  c.happy = Math.min(100, c.happy + 9);
-  c.dir = px > c.x ? 1 : -1;
-  say(c, pick(['Prrrr','Prrrrr…','Mrrrou']));
-  if (c.state === 'perch') c.timer = Math.max(c.timer, 3);
-  else if (c.state !== 'eat') setState(c, 'idle', rand(2.5, 4));
-  const s = catScale(c);
-  for (let i = 0; i < 3; i++) fx.push({x: c.x + rand(-14, 14) * s, y: c.y - 60 * s, vx: rand(-12, 12), vy: rand(-45, -30), life: 1.2, size: rand(12, 18) * s});
-}
-
-function update(c, dt){
-  c.hunger = Math.min(100, c.hunger + dt * 1.1);
-  c.happy = clamp(c.happy - dt * (c.hunger > 70 ? 1.2 : 0.45), 0, 100);
-  c.energy = clamp(c.energy + (c.state === 'sleep' ? dt * 7 : -dt * (c.state === 'chase' ? 3 : 0.7)), 0, 100);
-  c.tailT += dt;
-  if (c.twitch > 0) c.twitch -= dt;
-  // contentment: a happy chirp when a cat becomes really happy, and now and then while it stays so
-  if (c.happy > 80 && !asleep(c) && c.state !== 'fight' && c.state !== 'box'){
-    if (!c.wasHappy) cheer(c);
-    else if ((c.state === 'idle' || c.state === 'wander') && !c.bubble && Math.random() < dt * .015) cheer(c);
-  }
-  c.wasHappy = c.happy > 80 ? true : c.happy < 70 ? false : c.wasHappy;
-  // hunger: a pleading meow, more and more often, while no bowl has food left
-  c.hungryT = (c.hungryT ?? rand(1, 4)) - dt;
-  if (c.hunger > 70 && (c.state === 'idle' || c.state === 'wander') && !bowls.some(b => b.food > 0) && c.hungryT <= 0){
-    c.hungryT = rand(5, 9) * (c.hunger > 90 ? .55 : 1);
-    c.bubble = pick(['Miaaaou !', 'Mi-AAAOU !', 'Miaou ? Miaou !']); c.bubbleT = 2;
-    hungrySound(c);
-    if (performance.now() - lastHungerHint > 20000){ lastHungerHint = performance.now(); showHint(`${c.name} a faim ! Prends les croquettes pour remplir une gamelle.`); }
-  }
-  if (c.bubbleT > 0){ c.bubbleT -= dt; if (c.bubbleT <= 0) c.bubble = null; }
-  else if (c.state !== 'sleep' && Math.random() < dt * 0.035) say(c, pick(Math.random() < .75 ? c.voice.words : CHATTER));
-
-  // reactions to the room
-  const free = c.state === 'idle' || c.state === 'wander';
-  if (laser.on && free && c.energy > 15 && Math.random() < dt * (1.6 - c.lazy * 1.2)) { setState(c, 'chase'); say(c, '!', 0.8); }
-  if (laser.on && c.state === 'sleep' && c.lazy < .5 && Math.random() < dt * 0.15) { setState(c, 'chase'); say(c, '!!', 0.8); }
-  if (free && c.hunger > 45) {
-    const b = bowls.filter(b => b.food > 0).sort((a, b) => Math.hypot(a.x - c.x, a.y - c.y) - Math.hypot(b.x - c.x, b.y - c.y))[0];
-    if (b){ c.bowl = b; setState(c, 'eat'); }
-  }
-  // the litter boxes
-  c.bladder = Math.min(100, c.bladder + dt * (.7 + (c.state === 'eat' && !c.moving ? 3 : 0)));
-  c.complainT -= dt;
-  if ((c.state === 'idle' || c.state === 'wander') && c.bladder > 70){
-    const L = litters.filter(l => !l.user && l.dirt < 100).sort((a, b) => Math.hypot(a.x - c.x, a.y - c.y) - Math.hypot(b.x - c.x, b.y - c.y))[0];
-    if (L){ L.user = c; c.litter = L; setState(c, 'tolitter'); }
-    else if (litters.every(l => l.dirt >= 100) && c.complainT <= 0){
-      say(c, 'Beurk ! C’est sale !', 2.2); c.complainT = 7; c.happy = Math.max(0, c.happy - 8);
-      showHint('Les litières sont pleines ! Prends la pelle pour les nettoyer.');
-    }
-  }
-  // the water fountain
-  c.thirst = Math.min(100, c.thirst + dt * (.8 + (c.state === 'eat' && !c.moving ? 2 : 0)));
-  if ((c.state === 'idle' || c.state === 'wander') && c.thirst > 60){
-    const i = fountain.users.findIndex(u => !u);
-    if (i >= 0){ fountain.users[i] = c; c.fspot = i; setState(c, 'todrink'); thirsty(c); }
-    else if (c.thirst > 80){
-      c.thirstT = (c.thirstT ?? 0) - dt;
-      if (c.thirstT <= 0){ c.thirstT = rand(4, 7); thirsty(c); }
-    }
-  }
-  if (c.bladder >= 100 && !c.onTree && !['box', 'tolitter', 'litter'].includes(c.state)){
-    const s = scaleAt(c.y);
-    puddles.push({x: c.x - c.dir * 14 * s, y: c.y + 2, r: rand(14, 20) * s});
-    c.bladder = 0; c.happy = Math.max(0, c.happy - 10); say(c, 'Oups…', 2);
-    showHint(`Oups ! ${c.name} a eu un petit accident. Prends la pelle pour nettoyer.`);
-  }
-  // toys
-  if ((c.state === 'idle' || c.state === 'wander') && c.energy > 15){
-    const moving = toys.find(t => Math.hypot(t.vx, t.vy) > 40);
-    if ((moving && Math.random() < dt * (1.2 - c.lazy)) || Math.random() < dt * .03 * (1 - c.lazy)){ c.toy = moving || pick(toys); c.bats = 0; setState(c, 'toy'); }
-  }
-  // squabbles
-  c.fightCd = (c.fightCd || 0) - dt;
-  if ((c.state === 'idle' || c.state === 'wander') && !c.onTree && c.fightCd <= 0 && Math.random() < dt * (c.patience <= 4 ? .02 : .008)){
-    const s = scaleAt(c.y);
-    const o = cats.find(o => o !== c && (o.state === 'idle' || o.state === 'wander') && !o.onTree && (o.fightCd || 0) <= 0 && Math.hypot(o.x - c.x, o.y - c.y) < 160 * s);
-    if (o) startFight(c, o);
-  }
-  if ((c.state === 'idle' || c.state === 'wander') && c.energy > 15){
-    const sp = Math.hypot(ball.vx, ball.vy);
-    if ((sp > 40 && Math.random() < dt * (1.5 - c.lazy)) || Math.random() < dt * .02 * (1 - c.lazy)){ c.bats = 0; setState(c, 'ball'); }
-  }
-
-  switch (c.state){
-    case 'sleep':
-      c.timer -= dt;
-      if (c.timer <= 0 || c.energy >= 100){ setState(c, 'idle', rand(1, 3)); say(c, 'Miaaa…'); }
-      break;
-    case 'idle':
-      c.timer -= dt;
-      if (c.timer <= 0){
-        if (c.energy < 25 || Math.random() < 0.1 + c.lazy * 0.15 + (1 - daylight) * .3) setState(c, 'sleep', rand(7, 14) * (daylight < .5 ? 1.5 : 1));
-        else if (!box.occupant && Math.random() < .2){ box.occupant = c; setState(c, 'tobox'); }
-        else if (Math.random() < .3 && tree.spots.some(p => !p.cat)){ const sp = tree.spots.find(p => !p.cat); sp.cat = c; c.spot = sp; setState(c, 'totree'); }
-        else if (Math.random() < .25 && sillSpots.some(p => !p.cat)){ const sp = sillSpots.find(p => !p.cat); sp.cat = c; c.spot = sp; setState(c, 'totree'); }
-        else { const p = randFloor(); c.tx = p.x; c.ty = p.y; setState(c, 'wander'); }
-      }
-      break;
-    case 'wander':
-      if (moveTo(c, c.tx, c.ty, 48, dt)) setState(c, 'idle', rand(2, 5));
-      break;
-    case 'flee':
-      c.timer -= dt;
-      if (moveTo(c, c.tx, c.ty, 120, dt) || c.timer <= 0) setState(c, 'idle', rand(3, 5));
-      break;
-    case 'chase': {
-      if (!laser.on){ setState(c, 'idle', rand(1, 2.5)); break; }
-      const ty = clamp(laser.y, minY(), H - 14);
-      const reached = moveTo(c, laser.x - c.dir * 26 * scaleAt(c.y), ty, 175, dt);
-      if (reached || Math.hypot(laser.x - c.x, ty - c.y) < 34 * scaleAt(c.y)) c.happy = Math.min(100, c.happy + dt * 9);
-      if (c.energy < 8){ setState(c, 'sleep', rand(6, 10)); say(c, 'Pfiou…'); }
-      break;
-    }
-    case 'toy': {
-      const ty = c.toy; if (!ty){ setState(c, 'idle', 1); break; }
-      c.timer += dt; c.batCd -= dt;
-      const s = scaleAt(c.y), side = ty.x > c.x ? 1 : -1;
-      moveTo(c, ty.x - side * 20 * s, ty.y, 130, dt);
-      if (Math.hypot(ty.x - c.x, ty.y - c.y) < 30 * s && c.batCd <= 0){
-        c.dir = side; c.batCd = .8; c.bats++;
-        ty.vx = side * rand(90, 200); ty.vy = rand(-70, 70); pawTap(); toySound(ty);
-        c.happy = Math.min(100, c.happy + 5); c.energy -= 2;
-        if (Math.random() < .4){ c.bubble = pick(['Brrrp !', 'Mrrp !', 'Hop !']); c.bubbleT = 1; playTrill(c); }
-      }
-      if (c.bats >= 2 + Math.floor(c.patience / 2) || c.timer > 10 || c.energy < 10){ c.toy = null; setState(c, 'idle', rand(2, 4)); }
-      break;
-    }
-    case 'todrink': {
-      if (c.fspot == null){ setState(c, 'idle', 1); break; }
-      const s = scaleAt(fountain.y), side = c.fspot ? 1 : -1;
-      if (moveTo(c, fountain.x + side * 44 * s, fountain.y + 3, 60, dt)){ setState(c, 'drink'); c.dir = -side; }
-      break;
-    }
-    case 'drink':
-      c.thirst = Math.max(0, c.thirst - dt * 18);
-      c.lapT = (c.lapT ?? 0) - dt;
-      if (c.lapT <= 0){ lap(c); c.lapT = rand(.2, .3); }
-      if (c.thirst < 4){ setState(c, 'idle', rand(2, 4)); if (Math.random() < .5) say(c, pick(['Slurp !', 'Glou glou'])); }
-      break;
-    case 'tolitter': {
-      const L = c.litter; if (!L){ setState(c, 'idle', 1); break; }
-      if (moveTo(c, L.x, L.y - 1, 60, dt)){ setState(c, 'litter', 3.5); c.dir = Math.random() < .5 ? -1 : 1; }
-      break;
-    }
-    case 'litter': {
-      const L = c.litter; c.timer -= dt;
-      if (!L){ setState(c, 'idle', 1); break; }
-      if (c.timer <= 0){
-        const dirty = L.dirt >= 50;
-        L.dirt = Math.min(100, L.dirt + 25); L.clumps.push({dx: rand(-.6, .6), dy: rand(-.5, .5)});
-        c.bladder = 0; fart(c); setTimeout(scratch, 500);
-        const ps = scaleAt(c.y);
-        for (let i = 0; i < 4; i++) fx.push({x: c.x - c.dir * rand(14, 24) * ps, y: c.y - rand(8, 16) * ps, vx: -c.dir * rand(10, 30), vy: rand(-30, -15), life: .9, size: rand(8, 13) * ps, ch: '●', col: 'rgba(190,215,140,.7)'});
-        if (dirty){ say(c, 'Bof…'); c.happy = Math.max(0, c.happy - 5); } else c.happy = Math.min(100, c.happy + 3);
-        if (L.dirt >= 100) showHint('Une litière est pleine ! Prends la pelle pour la nettoyer.');
-        c.y = L.y + 16 * scaleAt(L.y); setState(c, 'idle', rand(1.5, 3));
-      }
-      break;
-    }
-    case 'totree':
-      if (!c.spot){ setState(c, 'idle', 1); break; }
-      { const b = spotBase(c.spot); if (moveTo(c, b.x, b.y, 60, dt)){ c.pKind = c.spot.kind || 'tree'; jump(c, spotPos(c.spot), true); } }
-      break;
-    case 'jump': {
-      c.jT += dt / (c.jUp ? .6 : .5);
-      const k = Math.min(1, c.jT), s = scaleAt(tree.y);
-      c.x = c.jFrom.x + (c.jTo.x - c.jFrom.x) * k;
-      c.y = c.jFrom.y + (c.jTo.y - c.jFrom.y) * k - Math.sin(Math.PI * k) * 40 * s;
-      c.phase += dt * 20;
-      if (k >= 1){
-        c.moving = false; landSound(c.jUp);
-        if (c.jUp && c.spot){
-          c.state = 'perch'; c.timer = rand(8, 16); c.dir = Math.random() < .5 ? -1 : 1;
-          const sill = c.pKind === 'sill';
-          c.perchSleep = Math.random() < (sill ? .2 + daylight * .4 : .3 + (1 - daylight) * .4);
-          if (!c.perchSleep) say(c, sill ? (daylight > .5 ? pick(['Un oiseau !', 'Ek-ek-ek !']) : pick(['La lune…', 'Mrr… ?'])) : pick(['Mrrp', 'Miaou']));
-        } else { c.onTree = false; c.state = 'idle'; c.timer = rand(1.5, 3); }
-      }
-      break;
-    }
-    case 'perch': {
-      const p = spotPos(c.spot); c.x = p.x; c.y = p.y;
-      c.timer -= dt; if (c.perchSleep) c.energy = Math.min(100, c.energy + dt * 6);
-      if (c.timer <= 0) jumpDown(c);
-      break;
-    }
-    case 'tobox':
-      if (moveTo(c, box.x, box.y + 1, 55, dt)){ setState(c, 'box', rand(6, 12)); c.dir = Math.random() < .5 ? -1 : 1; boxSound(true); say(c, 'Mrrp'); }
-      break;
-    case 'box':
-      c.timer -= dt; c.energy = Math.min(100, c.energy + dt * 2);
-      if (c.timer <= 0){ c.y = box.y + 16 * scaleAt(box.y); setState(c, 'idle', rand(2, 4)); boxSound(false); }
-      break;
-    case 'ball': {
-      c.timer += dt; c.batCd -= dt;
-      const s = scaleAt(c.y), side = ball.x > c.x ? 1 : -1;
-      moveTo(c, ball.x - side * 22 * s, ball.y, 150, dt);
-      if (Math.hypot(ball.x - c.x, ball.y - c.y) < 34 * s && ball.z < 20 && c.batCd <= 0){
-        c.dir = side; c.batCd = .7; c.bats++;
-        ball.vx = side * rand(120, 280); ball.vy = rand(-90, 90); ball.vz = rand(120, 240);
-        c.happy = Math.min(100, c.happy + 6); c.energy -= 3; pawTap();
-        if (Math.random() < .35){ c.bubble = pick(['Brrrp !', 'Mrrp !', 'Hop !']); c.bubbleT = 1; playTrill(c); }
-      }
-      if (c.bats >= 2 + Math.floor(c.patience / 2) || c.timer > 9 || c.energy < 10) setState(c, 'idle', rand(2, 4));
-      break;
-    }
-    case 'eat': {
-      const b = c.bowl;
-      if (!b || b.food <= 0){ c.bowl = null; setState(c, 'idle', rand(2, 4)); break; }
-      const s = scaleAt(c.y), side = c.x < b.x ? -1 : 1;
-      if (moveTo(c, b.x + side * 34 * s, b.y + 2, 70, dt)){
-        c.dir = -side;
-        c.crunchT = (c.crunchT ?? 0) - dt;
-        if (c.crunchT <= 0){ crunch(c); c.crunchT = rand(.3, .55); }
-        c.hunger = Math.max(0, c.hunger - dt * 22); b.food -= dt * 5; c.happy = Math.min(100, c.happy + dt * 3);
-        if (c.hunger < 4 || b.food <= 0){ say(c, 'Miam !'); c.bowl = null; setState(c, 'idle', rand(3, 6)); }
-      }
-      break;
-    }
-  }
-}
-
-/* ---------- drawing ---------- */
-const OUT = 'rgba(20,10,12,.35)';
-function blob(fill, path){ ctx.beginPath(); path(); ctx.fillStyle = fill; ctx.fill(); ctx.lineWidth = 1.6; ctx.strokeStyle = OUT; ctx.stroke(); }
-const ell = (x, y, rx, ry, r = 0) => () => ctx.ellipse(x, y, rx, ry, r, 0, Math.PI * 2);
-
-function bodyPattern(co, x, y, rx, ry){
-  ctx.save(); ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); ctx.clip();
-  if (co.pat === 'tabby'){
-    ctx.strokeStyle = co.dark; ctx.lineWidth = 3.2; ctx.lineCap = 'round';
-    for (let i = -2; i <= 2; i++){ ctx.beginPath(); ctx.moveTo(x + i * rx * .36 - 3, y - ry); ctx.quadraticCurveTo(x + i * rx * .36 + 4, y - ry * .2, x + i * rx * .36 - 2, y + ry * .25); ctx.stroke(); }
-  } else if (co.pat === 'tux'){
-    ctx.fillStyle = '#f4efe7'; ctx.beginPath(); ctx.ellipse(x + rx * .35, y + ry * .75, rx * .7, ry * .55, 0, 0, Math.PI * 2); ctx.fill();
-  } else if (co.pat === 'calico'){
-    ctx.fillStyle = '#e08a3c'; ctx.beginPath(); ctx.ellipse(x - rx * .4, y - ry * .5, rx * .45, ry * .6, .4, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#2a2527'; ctx.beginPath(); ctx.ellipse(x + rx * .35, y - ry * .6, rx * .35, ry * .45, -.3, 0, Math.PI * 2); ctx.fill();
-  } else if (co.pat === 'points'){
-    const g = ctx.createLinearGradient(x - rx, 0, x + rx, 0); g.addColorStop(0, 'rgba(90,64,51,.45)'); g.addColorStop(.4, 'rgba(90,64,51,0)'); ctx.fillStyle = g; ctx.fillRect(x - rx, y - ry, rx * 2, ry * 2);
-  }
-  ctx.restore();
-  ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); ctx.lineWidth = 1.6; ctx.strokeStyle = OUT; ctx.stroke();
-}
-
-function head(co, hx, hy, r, closed){
-  const earC = co.pat === 'points' ? co.dark : co.pat === 'calico' ? '#e08a3c' : co.base;
-  const ear = (a, b, c) => blob(earC, () => { ctx.moveTo(...a); ctx.lineTo(...b); ctx.lineTo(...c); ctx.closePath(); });
-  ear([hx - r * .75, hy - r * .45], [hx - r * .45, hy - r * 1.5], [hx + r * .05, hy - r * .85]);
-  ear([hx + r * .0, hy - r * .92], [hx + r * .55, hy - r * 1.45], [hx + r * .85, hy - r * .4]);
-  ctx.fillStyle = 'rgba(255,150,170,.55)';
-  ctx.beginPath(); ctx.moveTo(hx + r * .2, hy - r * .85); ctx.lineTo(hx + r * .52, hy - r * 1.2); ctx.lineTo(hx + r * .66, hy - r * .6); ctx.fill();
-  blob(co.base, ell(hx, hy, r, r * .92));
-  ctx.save(); ctx.beginPath(); ctx.ellipse(hx, hy, r, r * .92, 0, 0, Math.PI * 2); ctx.clip();
-  if (co.pat === 'points'){ ctx.fillStyle = co.dark; ctx.beginPath(); ctx.ellipse(hx + r * .6, hy + r * .25, r * .6, r * .5, 0, 0, Math.PI * 2); ctx.fill(); }
-  if (co.pat === 'tux'){ ctx.fillStyle = '#f4efe7'; ctx.beginPath(); ctx.ellipse(hx + r * .7, hy + r * .5, r * .55, r * .45, 0, 0, Math.PI * 2); ctx.fill(); }
-  if (co.pat === 'calico'){ ctx.fillStyle = '#2a2527'; ctx.beginPath(); ctx.ellipse(hx - r * .5, hy - r * .5, r * .6, r * .5, 0, 0, Math.PI * 2); ctx.fill(); }
-  if (co.pat === 'tabby'){ ctx.strokeStyle = co.dark; ctx.lineWidth = 2.2; ctx.lineCap = 'round'; for (let i = 0; i < 3; i++){ ctx.beginPath(); ctx.moveTo(hx - r * .2 + i * r * .25, hy - r * .9); ctx.lineTo(hx - r * .1 + i * r * .25, hy - r * .55); ctx.stroke(); } }
-  ctx.restore();
-  ctx.beginPath(); ctx.ellipse(hx, hy, r, r * .92, 0, 0, Math.PI * 2); ctx.lineWidth = 1.6; ctx.strokeStyle = OUT; ctx.stroke();
-  const ex = hx + r * .38, ey = hy - r * .12;
-  if (closed){ ctx.strokeStyle = '#1a1214'; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.arc(ex, ey - 1, r * .2, .2, Math.PI - .2); ctx.stroke(); }
-  else {
-    ctx.fillStyle = co.eye; ctx.beginPath(); ctx.ellipse(ex, ey, r * .2, r * .24, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#120c0e'; ctx.beginPath(); ctx.ellipse(ex + r * .05, ey, r * .07, r * .19, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = 'rgba(255,255,255,.8)'; ctx.beginPath(); ctx.arc(ex - r * .02, ey - r * .1, r * .05, 0, Math.PI * 2); ctx.fill();
-  }
-  ctx.fillStyle = '#e8869a'; ctx.beginPath(); ctx.moveTo(hx + r * .92, hy + r * .12); ctx.lineTo(hx + r * .78, hy + r * .02); ctx.lineTo(hx + r * .8, hy + r * .25); ctx.fill();
-  ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = .9;
-  for (let i = -1; i <= 1; i++){ ctx.beginPath(); ctx.moveTo(hx + r * .75, hy + r * .3); ctx.lineTo(hx + r * 1.55, hy + r * .3 + i * r * .22); ctx.stroke(); }
-}
-
-function leg(co, x, y, h, paw){
-  blob(co.base, () => ctx.roundRect(x - 3.5, y, 7, h, 3.5));
-  if (paw){ ctx.fillStyle = paw; ctx.beginPath(); ctx.roundRect(x - 3.5, y + h - 4, 7, 4, 2); ctx.fill(); }
-}
-
-function drawCat(c){
-  const s = catScale(c), co = c.coat;
-  const paw = co.pat === 'tux' ? '#f4efe7' : co.pat === 'points' ? co.dark : null;
-  const tailC = co.pat === 'points' || co.pat === 'calico' ? co.dark : co.base;
-  ctx.save(); ctx.translate(c.x, c.y - (c.hop || 0));
-  ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(0, 0, 30 * s, 6 * s, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.scale(c.dir * s, s);
-  const sway = Math.sin(c.tailT * (c.state === 'chase' || c.twitch > 0 ? 9 : 2.2)) * 7;
-  ctx.lineCap = 'round';
-
-  if (asleep(c)){
-    ctx.strokeStyle = OUT; ctx.lineWidth = 8.5; ctx.beginPath(); ctx.moveTo(-22, -8); ctx.quadraticCurveTo(-10, 6, 20, -1); ctx.stroke();
-    ctx.strokeStyle = tailC; ctx.lineWidth = 6.5; ctx.stroke();
-    const br = 1 + Math.sin(c.tailT * 2) * .03;
-    blob(co.base, ell(0, -13, 27, 14 * br));
-    bodyPattern(co, 0, -13, 27, 14 * br);
-    head(co, 19, -14, 11.5, true);
-  } else if (c.moving || c.state === 'chase' || (c.state === 'eat' && c.bowl) || c.state === 'drink' || c.state === 'fight'){
-    const sw = c.moving ? 4.5 : 0, lowHead = c.state === 'chase' || c.state === 'drink' || (c.state === 'eat' && !c.moving);
-    ctx.strokeStyle = OUT; ctx.lineWidth = 8; ctx.beginPath(); ctx.moveTo(-26, -26); ctx.quadraticCurveTo(-46, -30 + sway, -44 + sway * .5, -54); ctx.stroke();
-    ctx.strokeStyle = tailC; ctx.lineWidth = 6; ctx.stroke();
-    [[-19, 0], [-10, Math.PI], [13, Math.PI], [21, 0]].forEach(([lx, ph]) => leg(co, lx + Math.sin(c.phase + ph) * sw, -15, 15, paw));
-    blob(co.base, ell(0, -25, 29, 14));
-    bodyPattern(co, 0, -25, 29, 14);
-    head(co, lowHead ? 30 : 27, lowHead ? -26 : -38, 13, false);
-  } else {
-    ctx.strokeStyle = OUT; ctx.lineWidth = 8; ctx.beginPath(); ctx.moveTo(-12, -5); ctx.quadraticCurveTo(-34, 0, -28 + sway * .4, -16); ctx.stroke();
-    ctx.strokeStyle = tailC; ctx.lineWidth = 6; ctx.stroke();
-    blob(co.base, ell(-2, -22, 18, 21));
-    bodyPattern(co, -2, -22, 18, 21);
-    leg(co, 7, -18, 18, paw); leg(co, 13, -17, 17, paw);
-    head(co, 7, -50, 14, c.happy > 85 && c.bubble && c.bubble.startsWith('Pr'));
-  }
-  ctx.restore();
-  drawLabels(c);
-}
-
-function drawLabels(c){
-  const s = catScale(c);
-  ctx.font = `700 ${Math.max(10, 12 * s)}px Nunito, system-ui, sans-serif`;
-  ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(255,244,230,.8)';
-  ctx.fillText(c.name, c.x, c.y + 15 * s + 4);
-  if (asleep(c)){
-    const t = c.tailT;
-    ctx.fillStyle = 'rgba(200,210,255,.9)';
-    for (let i = 0; i < 3; i++){ const k = ((t * .5 + i / 3) % 1); ctx.globalAlpha = 1 - k; ctx.font = `800 ${(10 + i * 3) * s}px "Baloo 2", system-ui`; ctx.fillText('z', c.x + c.dir * (20 + k * 18) * s, c.y - (30 + k * 34) * s); }
-    ctx.globalAlpha = 1;
-  }
-  if (c.bubble){
-    const by = c.y - (asleep(c) ? 50 : 82) * s;
-    ctx.font = `800 ${Math.max(12, 14 * s)}px "Baloo 2", system-ui`;
-    const tw = ctx.measureText(c.bubble).width + 16, th = Math.max(22, 24 * s);
-    const bx = clamp(c.x, tw / 2 + 4, W - tw / 2 - 4);
-    ctx.globalAlpha = Math.min(1, c.bubbleT * 3);
-    ctx.fillStyle = '#fff6ea'; ctx.beginPath(); ctx.roundRect(bx - tw / 2, by - th, tw, th, 10); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(c.x - 5, by - 1); ctx.lineTo(c.x + 5, by - 1); ctx.lineTo(c.x, by + 6); ctx.fill();
-    ctx.fillStyle = c.bubble === 'Pfff !' ? '#c0392b' : '#3a2530'; ctx.textBaseline = 'middle';
-    ctx.fillText(c.bubble, bx, by - th / 2 + 1); ctx.textBaseline = 'alphabetic'; ctx.globalAlpha = 1;
-  }
-}
-
-function drawBowl(b){
-  const s = scaleAt(b.y);
-  ctx.save(); ctx.translate(b.x, b.y); ctx.scale(s, s);
-  ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(0, 2, 24, 5, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#4f8fd6'; ctx.beginPath(); ctx.moveTo(-22, -12); ctx.lineTo(22, -12); ctx.lineTo(16, 1); ctx.lineTo(-16, 1); ctx.closePath(); ctx.fill();
-  ctx.fillStyle = '#7bb3ee'; ctx.beginPath(); ctx.ellipse(0, -12, 22, 5, 0, 0, Math.PI * 2); ctx.fill();
-  const n = Math.ceil(b.food / 100 * 14);
-  ctx.fillStyle = '#8a5428';
-  for (let i = 0; i < n; i++){ const a = i * 2.4, r = (i % 5) * 3.6; ctx.beginPath(); ctx.arc(Math.cos(a) * r, -13 + Math.sin(a) * r * .25 - (i > 8 ? 2 : 0), 2.6, 0, Math.PI * 2); ctx.fill(); }
-  ctx.restore();
-}
-
-function drawBall(){
-  const s = scaleAt(ball.y), r = 9 * s, cy = ball.y - r - ball.z * s;
-  ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(ball.x, ball.y, r * 1.1, r * .35, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = '#d0486c'; ctx.lineWidth = 1.6 * s; ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.moveTo(ball.x - r * .3, cy + r * .8); ctx.quadraticCurveTo(ball.x - r * 2.2, ball.y + 2 * s, ball.x - r * 3.2 - Math.sin(ball.rot) * r * .6, ball.y - s); ctx.stroke();
-  ctx.save(); ctx.translate(ball.x, cy); ctx.rotate(ball.rot);
-  ctx.fillStyle = '#e0577a'; ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = '#f6a3bb'; ctx.lineWidth = 1.3 * s;
-  for (let i = 0; i < 4; i++){ ctx.beginPath(); ctx.ellipse(0, 0, r * .92, r * (.25 + i * .2), i * .8, 0, Math.PI * 2); ctx.stroke(); }
-  ctx.restore();
-}
-
-function drawLitter(L){
-  const s = scaleAt(L.y), t = performance.now() / 1000;
-  ctx.save(); ctx.translate(L.x, L.y); ctx.scale(s, s);
-  ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(0, 2, 42, 7, 0, 0, Math.PI * 2); ctx.fill();
-  blob('#5f86a3', () => { ctx.moveTo(-38, -16); ctx.lineTo(38, -16); ctx.lineTo(32, 0); ctx.lineTo(-32, 0); ctx.closePath(); });
-  blob('#7fa6c2', () => ctx.roundRect(-40, -21, 80, 7, 3));
-  ctx.fillStyle = mix('#ecdcb2', '#c9b282', L.dirt / 100); ctx.beginPath(); ctx.ellipse(0, -19, 35, 3, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#7a5530';
-  for (const cl of L.clumps){ ctx.beginPath(); ctx.ellipse(cl.dx * 26, -20 + cl.dy * 2.5, 5.5, 3, 0, 0, Math.PI * 2); ctx.fill(); }
-  ctx.restore();
-  if (L.dirt >= 50){
-    ctx.lineWidth = 2; ctx.lineCap = 'round';
-    for (let i = 0; i < 3; i++){
-      const k = (t * .6 + i / 3) % 1, bx = L.x + (i - 1) * 14 * s, by = L.y - (26 + k * 40) * s;
-      ctx.strokeStyle = `rgba(150,200,90,${(1 - k) * .85})`; ctx.beginPath();
-      for (let j = 0; j <= 8; j++){ const yy = by - j * 2.2 * s, xx = bx + Math.sin(j * .9 + t * 4 + i) * 3 * s; j ? ctx.lineTo(xx, yy) : ctx.moveTo(xx, yy); }
-      ctx.stroke();
-    }
-  }
-}
-
-function drawToy(ty){
-  const s = scaleAt(ty.y);
-  ctx.save(); ctx.translate(ty.x, ty.y); ctx.scale(s, s);
-  ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.beginPath(); ctx.ellipse(0, 1, 12, 3, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.lineCap = 'round';
-  if (ty.kind === 'mouse'){
-    ctx.scale(ty.face, 1);
-    ctx.strokeStyle = '#c98a9a'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(-9, -4); ctx.quadraticCurveTo(-16, -2, -18, -7 + Math.sin(ty.rot) * 2); ctx.stroke();
-    blob('#9aa0a6', ell(0, -5, 10, 5.5));
-    ctx.fillStyle = '#f0b6c4'; ctx.beginPath(); ctx.arc(4, -10, 3, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(10, -4.5, 1.3, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(7, -6, 1, 0, Math.PI * 2); ctx.fill();
-  } else if (ty.kind === 'bell'){
-    ctx.translate(0, -6); ctx.rotate(ty.rot);
-    blob('#7ad0c8', ell(0, 0, 6, 6));
-    ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(-6, 0); ctx.lineTo(6, 0); ctx.moveTo(0, -6); ctx.lineTo(0, 6); ctx.stroke();
-    ctx.fillStyle = '#f2c94c'; ctx.beginPath(); ctx.arc(0, 0, 2.2, 0, Math.PI * 2); ctx.fill();
-  } else {
-    ctx.scale(ty.face, 1);
-    blob('#f29a4a', () => { ctx.moveTo(-8, -5); ctx.lineTo(-15, -10); ctx.lineTo(-14, 0); ctx.closePath(); });
-    blob('#f6a95c', ell(0, -5, 10, 5));
-    ctx.strokeStyle = 'rgba(180,90,30,.6)'; ctx.lineWidth = 1;
-    for (const x of [-3, 1]){ ctx.beginPath(); ctx.arc(x, -5, 4, -.9, .9); ctx.stroke(); }
-    ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(6, -6, 1, 0, Math.PI * 2); ctx.fill();
-  }
-  ctx.restore();
-}
-
-function drawFight(f){
-  const s = scaleAt(f.y), t = performance.now() / 1000;
-  if (f.phase === 'brawl'){
-    ctx.save(); ctx.translate(f.x, f.y); ctx.scale(s, s);
-    ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.beginPath(); ctx.ellipse(0, 0, 50, 9, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.lineCap = 'round';
-    const cols = [f.a.coat.base, f.b.coat.base];
-    for (let i = 0; i < 6; i++){
-      const a = t * 3 + i * 1.05;
-      ctx.beginPath(); ctx.moveTo(Math.cos(a) * 18, -30 + Math.sin(a) * 12); ctx.lineTo(Math.cos(a) * 40, -30 + Math.sin(a) * 28);
-      ctx.strokeStyle = OUT; ctx.lineWidth = 8; ctx.stroke(); ctx.strokeStyle = cols[i % 2]; ctx.lineWidth = 6; ctx.stroke();
-    }
-    for (let i = 0; i < 9; i++){
-      const a = i / 9 * Math.PI * 2 + Math.sin(t * 5 + i) * .3, rr = 24 + Math.sin(t * 9 + i * 2) * 4;
-      ctx.fillStyle = i % 2 ? '#d8d0c2' : '#c4bbab';
-      ctx.beginPath(); ctx.arc(Math.cos(a) * rr * 1.2, -30 + Math.sin(a) * rr * .8, 17 + Math.sin(t * 7 + i) * 3, 0, Math.PI * 2); ctx.fill();
-    }
-    ctx.fillStyle = '#e4ddd0'; ctx.beginPath(); ctx.arc(0, -30, 26, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#5a4a3a'; ctx.font = '800 16px "Baloo 2", system-ui'; ctx.textAlign = 'center';
-    ctx.fillText(['#@!', '%&!', '!!?'][Math.floor(t * 3) % 3], Math.sin(t * 4) * 6, -25);
-    ctx.restore();
-  }
-  if (f.phase !== 'stare'){
-    const pr = (t * 1.2) % 1;
-    ctx.strokeStyle = f.phase === 'brawl' ? `rgba(255,90,90,${1 - pr})` : `rgba(255,180,80,${(1 - pr) * .8})`;
-    ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(f.x, f.y - 30 * s, (50 + pr * 25) * s, (40 + pr * 20) * s, 0, 0, Math.PI * 2); ctx.stroke();
-  }
-}
-
-function drawFountain(){
-  const s = scaleAt(fountain.y), t = performance.now() / 1000;
-  ctx.save(); ctx.translate(fountain.x, fountain.y); ctx.scale(s, s);
-  ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(0, 2, 40, 7, 0, 0, Math.PI * 2); ctx.fill();
-  blob('#e8eef3', () => { ctx.moveTo(-36, -16); ctx.lineTo(36, -16); ctx.lineTo(28, 0); ctx.lineTo(-28, 0); ctx.closePath(); });
-  ctx.fillStyle = '#5aa6d6'; ctx.fillRect(-32, -10, 64, 3);
-  ctx.fillStyle = '#7cc4e8'; ctx.beginPath(); ctx.ellipse(0, -16, 34, 5, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.lineWidth = 1;
-  for (let i = 0; i < 2; i++){ const k = (t * .8 + i * .5) % 1; ctx.globalAlpha = 1 - k; ctx.beginPath(); ctx.ellipse(0, -16, 8 + k * 24, 1.5 + k * 3.5, 0, 0, Math.PI * 2); ctx.stroke(); }
-  ctx.globalAlpha = 1;
-  blob('#d5dee6', () => ctx.roundRect(-5, -34, 10, 18, 3));
-  ctx.strokeStyle = 'rgba(150,210,240,.85)'; ctx.lineWidth = 2.2; ctx.lineCap = 'round';
-  for (const sd of [-1, 1]){ ctx.beginPath(); ctx.moveTo(0, -34); ctx.quadraticCurveTo(sd * 10, -44, sd * 14, -17); ctx.stroke(); }
-  ctx.fillStyle = 'rgba(210,240,255,.9)';
-  for (let i = 0; i < 4; i++){ const k = (t * 1.6 + i / 4) % 1, sd = i % 2 ? 1 : -1; ctx.beginPath(); ctx.arc(sd * (3 + k * 11), -34 - Math.sin(k * Math.PI) * 8 + k * 16, 1.2, 0, Math.PI * 2); ctx.fill(); }
-  ctx.restore();
-}
-
-function drawPuddle(q){
-  ctx.fillStyle = 'rgba(232,205,70,.55)'; ctx.beginPath(); ctx.ellipse(q.x, q.y, q.r, q.r * .38, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.beginPath(); ctx.ellipse(q.x - q.r * .3, q.y - q.r * .1, q.r * .3, q.r * .08, 0, 0, Math.PI * 2); ctx.fill();
-}
-
-function drawTree(){
-  const s = scaleAt(tree.y), t = performance.now() / 1000;
-  ctx.save(); ctx.translate(tree.x, tree.y); ctx.scale(s, s);
-  ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(0, 2, 54, 9, 0, 0, Math.PI * 2); ctx.fill();
-  const post = (x, y0, y1) => {
-    blob('#d9b98a', () => ctx.rect(x - 7, y1, 14, y0 - y1));
-    ctx.strokeStyle = 'rgba(120,85,45,.55)'; ctx.lineWidth = 1.2;
-    for (let y = y1 + 4; y < y0; y += 5){ ctx.beginPath(); ctx.moveTo(x - 7, y); ctx.lineTo(x + 7, y + 2.5); ctx.stroke(); }
-  };
-  const deck = (x, y, w) => {
-    blob('#7b5a8c', () => ctx.roundRect(x - w / 2, y, w, 9, 4));
-    ctx.fillStyle = 'rgba(255,255,255,.14)'; ctx.fillRect(x - w / 2 + 3, y + 1.5, w - 6, 2.5);
-  };
-  post(8, -4, -152);
-  post(-24, -4, -78);
-  blob('#6a4c7a', () => ctx.roundRect(-48, -10, 96, 12, 5));
-  deck(-24, -78, 60);
-  const sw = Math.sin(t * 1.8) * 6;
-  ctx.strokeStyle = '#e9dcc6'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(-46, -69); ctx.lineTo(-46 + sw, -40); ctx.stroke();
-  ctx.fillStyle = '#ffb347'; ctx.beginPath(); ctx.arc(-46 + sw, -37, 5, 0, Math.PI * 2); ctx.fill();
-  deck(8, -152, 70);
-  ctx.restore();
-}
-
-function drawBox(){
-  const s = scaleAt(box.y), oc = box.occupant && box.occupant.state === 'box' ? box.occupant : null;
-  const shake = Math.max(0, (box.shakeUntil || 0) - performance.now()) / 450;
-  ctx.save(); ctx.translate(box.x, box.y); ctx.scale(s, s); ctx.rotate(Math.sin(performance.now() / 28) * .07 * shake);
-  ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(0, 2, 44, 8, 0, 0, Math.PI * 2); ctx.fill();
-  blob('#7d4f2a', () => { ctx.moveTo(-36, -34); ctx.lineTo(-28, -44); ctx.lineTo(28, -44); ctx.lineTo(36, -34); ctx.closePath(); });
-  if (oc){ ctx.save(); ctx.scale(oc.dir, 1); head(oc.coat, 0, -44, 14, oc.lazy > .5 && oc.timer > 3); ctx.restore(); }
-  blob('#c98b4f', () => ctx.rect(-36, -34, 72, 34));
-  ctx.fillStyle = 'rgba(255,235,200,.3)'; ctx.fillRect(-5, -34, 10, 34);
-  blob('#b47a42', () => { ctx.moveTo(-36, -34); ctx.lineTo(-54, -48); ctx.lineTo(-40, -56); ctx.lineTo(-26, -43); ctx.closePath(); });
-  blob('#b47a42', () => { ctx.moveTo(36, -34); ctx.lineTo(54, -46); ctx.lineTo(44, -55); ctx.lineTo(27, -43); ctx.closePath(); });
-  if (oc){
-    const pc = oc.coat.pat === 'tux' ? '#f4efe7' : oc.coat.pat === 'points' ? oc.coat.dark : oc.coat.base;
-    blob(pc, ell(-8, -35, 5, 3.5)); blob(pc, ell(8, -35, 5, 3.5));
-  }
-  ctx.restore();
-  if (oc) drawLabels(oc);
-}
-
-function drawRoom(t){
-  const wall = ctx.createLinearGradient(0, 0, 0, floorTop);
-  wall.addColorStop(0, mix('#2f4a4d', '#6f9c9a', daylight)); wall.addColorStop(1, mix('#3f6063', '#8bb3ad', daylight));
-  ctx.fillStyle = wall; ctx.fillRect(0, 0, W, floorTop);
-  ctx.fillStyle = 'rgba(255,255,255,.035)';
-  for (let x = 0; x < W; x += 36) ctx.fillRect(x, 0, 14, floorTop);
-  // window
-  const wx = W * .62, wy = floorTop * .14, ww = Math.min(W * .26, 230), wh = floorTop * .62;
-  const dusk = 1 - Math.min(1, Math.abs(sunHeight()) / .35);
-  const sky = ctx.createLinearGradient(0, wy, 0, wy + wh);
-  sky.addColorStop(0, mix(mix('#16203f', '#5fb4ea', daylight), '#6a5a9a', dusk * .5));
-  sky.addColorStop(1, mix(mix('#3b3d6e', '#cdeefc', daylight), '#f4a36b', dusk * .8));
-  ctx.fillStyle = '#e9dcc6'; ctx.fillRect(wx - 7, wy - 7, ww + 14, wh + 14);
-  ctx.fillStyle = sky; ctx.fillRect(wx, wy, ww, wh);
-  ctx.save(); ctx.beginPath(); ctx.rect(wx, wy, ww, wh); ctx.clip();
-  ctx.fillStyle = '#fff'; for (const [sx, sy, sp] of stars){ ctx.globalAlpha = (.4 + .6 * Math.abs(Math.sin(t * .8 + sp * 9))) * (1 - daylight); ctx.fillRect(wx + sx * ww, wy + sy * wh * .8, 1.6, 1.6); } ctx.globalAlpha = 1;
-  const orb = (ph, col, isSun) => {
-    const k = ((ph % 1) + 1) % 1; if (k < .2 || k > .8) return;
-    const u = (k - .2) / .6, r = Math.min(ww, wh) * .12;
-    const ox = wx + ww * (.1 + .8 * u), oy = wy + wh * (1.05 - .8 * Math.sin(Math.PI * u));
-    if (isSun){ const g = ctx.createRadialGradient(ox, oy, r * .5, ox, oy, r * 3.5); g.addColorStop(0, 'rgba(255,240,180,.55)'); g.addColorStop(1, 'rgba(255,240,180,0)'); ctx.fillStyle = g; ctx.fillRect(wx, wy, ww, wh); }
-    ctx.globalAlpha = isSun ? 1 : 1 - daylight * .7;
-    ctx.fillStyle = col; ctx.beginPath(); ctx.arc(ox, oy, r, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1;
-  };
-  orb(dayPhase + .5, '#f7efd2', false);
-  orb(dayPhase, mix('#ff9a5a', '#ffe9a0', smooth(0, .4, sunHeight())), true);
-  drawBirds(wx, wy, ww, wh);
-  ctx.restore();
-  ctx.fillStyle = '#e9dcc6'; ctx.fillRect(wx + ww / 2 - 3, wy, 6, wh); ctx.fillRect(wx, wy + wh / 2 - 3, ww, 6);
-  ctx.fillRect(wx - 14, wy + wh + 4, ww + 28, 8);
-  // lamp
-  const lx = W * .18, lb = floorTop - 2;
-  ctx.fillStyle = '#2a2025'; ctx.fillRect(lx - 2, floorTop * .5, 4, lb - floorTop * .5); ctx.fillRect(lx - 16, lb - 4, 32, 5);
-  ctx.fillStyle = mix('#ffd38a', '#d9c6a6', daylight); ctx.beginPath(); ctx.moveTo(lx - 30, floorTop * .52); ctx.lineTo(lx + 30, floorTop * .52); ctx.lineTo(lx + 18, floorTop * .3); ctx.lineTo(lx - 18, floorTop * .3); ctx.closePath(); ctx.fill();
-  // floor
-  const fl = ctx.createLinearGradient(0, floorTop, 0, H); fl.addColorStop(0, mix('#7a4f35', '#a07250', daylight)); fl.addColorStop(1, mix('#a66c45', '#c99366', daylight));
-  ctx.fillStyle = fl; ctx.fillRect(0, floorTop, W, H - floorTop);
-  ctx.strokeStyle = 'rgba(40,20,10,.25)'; ctx.lineWidth = 1;
-  for (let y = floorTop + 14, i = 0; y < H; y += 14 + i * 3, i++){ ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
-  ctx.fillStyle = '#26383a'; ctx.fillRect(0, floorTop - 6, W, 8);
-  // rug
-  const rx = W * .46, ry = floorTop + (H - floorTop) * .56, rw = W * .32, rh = (H - floorTop) * .3;
-  ctx.fillStyle = '#b8493f'; ctx.beginPath(); ctx.ellipse(rx, ry, rw, rh, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = '#e8a64e'; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(rx, ry, rw * .8, rh * .75, 0, 0, Math.PI * 2); ctx.stroke();
-  ctx.strokeStyle = 'rgba(232,166,78,.5)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(rx, ry, rw * .55, rh * .5, 0, 0, Math.PI * 2); ctx.stroke();
-  // sunbeam from the window, sliding with the sun
-  if (daylight > .01){
-    const off = (.5 - dayPhase) * W * .8;
-    ctx.fillStyle = `rgba(255,240,200,${.13 * daylight})`;
-    ctx.beginPath(); ctx.moveTo(wx, floorTop); ctx.lineTo(wx + ww, floorTop); ctx.lineTo(wx + ww + off, H); ctx.lineTo(wx + off, H); ctx.closePath(); ctx.fill();
-  }
-}
-
-function drawNight(){
-  const n = 1 - daylight;
-  if (n > .01){ ctx.fillStyle = `rgba(12,16,42,${.4 * n})`; ctx.fillRect(0, 0, W, H); }
-  const lx = W * .18, ly = floorTop * .5;
-  const lg = ctx.createRadialGradient(lx, ly, 10, lx, ly, W * .45);
-  lg.addColorStop(0, `rgba(255,196,120,${.05 + .32 * n})`); lg.addColorStop(1, 'rgba(255,196,120,0)');
-  ctx.fillStyle = lg; ctx.fillRect(0, 0, W, H);
-  // clock
-  const h = dayPhase * 24, hh = Math.floor(h), mm = Math.floor((h - hh) * 4) * 15;
-  const lbl = hh < 6 ? 'Nuit' : hh < 12 ? 'Matin' : hh < 18 ? 'Après-midi' : hh < 22 ? 'Soir' : 'Nuit';
-  const txt = `${lbl} · ${String(hh).padStart(2, '0')}h${String(mm).padStart(2, '0')}`;
-  ctx.font = '700 13px Nunito, system-ui, sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-  const tw = ctx.measureText(txt).width + 20;
-  ctx.fillStyle = 'rgba(25,18,28,.72)'; ctx.beginPath(); ctx.roundRect(12, 12, tw, 26, 13); ctx.fill();
-  ctx.fillStyle = '#f3e9dc'; ctx.fillText(txt, 22, 25.5);
-  ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
-}
-
-function drawLaser(t){
-  if (!laser.on) return;
-  const y = clamp(laser.y, floorTop, H);
-  const g = ctx.createRadialGradient(laser.x, y, 0, laser.x, y, 16);
-  g.addColorStop(0, 'rgba(255,60,60,.9)'); g.addColorStop(1, 'rgba(255,60,60,0)');
-  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(laser.x, y, 16, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#fff0f0'; ctx.beginPath(); ctx.arc(laser.x, y, 2.6 + Math.sin(t * 20) * .5, 0, Math.PI * 2); ctx.fill();
-}
-
-let last = performance.now(), rosterT = 0, snoreT = 2;
-function frame(now){
-  const dt = Math.min(0.05, (now - last) / 1000); last = now; const t = now / 1000;
-  for (const c of cats) update(c, dt);
-  updateBall(dt);
-  updateDay(dt);
-  updateBirds(dt);
-  updateToys(dt);
-  updateFights(dt);
-  snoreT -= dt;
-  if (snoreT <= 0){
-    const sleepers = cats.filter(asleep);
-    if (sleepers.length){ snore(pick(sleepers)); snoreT = rand(2.6, 4); } else snoreT = 1;
-  }
-  for (let i = bowls.length - 1; i >= 0; i--) if (bowls[i].food <= 0){ bowls[i].fade -= dt; if (bowls[i].fade <= 0) bowls.splice(i, 1); }
-  drawRoom(t);
-  for (const b of bowls){ ctx.globalAlpha = b.food > 0 ? 1 : Math.max(0, b.fade); drawBowl(b); } ctx.globalAlpha = 1;
-  const ents = cats.filter(c => c.state !== 'box' && !(c.fight && c.fight.phase === 'brawl')).map(c => ({y: c.onTree ? (c.pKind === 'sill' ? 0 : tree.y + .5) : c.y, d: () => drawCat(c)}));
-  ents.push({y: ball.y, d: drawBall}, {y: box.y, d: drawBox}, {y: tree.y, d: drawTree}, {y: fountain.y, d: drawFountain}, ...toys.map(ty => ({y: ty.y, d: () => drawToy(ty)})), ...fights.map(f => ({y: f.y + 1, d: () => drawFight(f)})), ...litters.map(L => ({y: L.y, d: () => drawLitter(L)})));
-  puddles.forEach(drawPuddle);
-  ents.sort((a, b) => a.y - b.y).forEach(e => e.d());
-  drawNight();
-  drawLaser(t);
-  for (let i = fx.length - 1; i >= 0; i--){
-    const p = fx[i]; p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt;
-    if (p.life <= 0){ fx.splice(i, 1); continue; }
-    ctx.globalAlpha = Math.min(1, p.life); ctx.fillStyle = p.col || '#ff7aa8'; ctx.font = `${p.size}px system-ui`; ctx.textAlign = 'center'; ctx.fillText(p.ch || '♥', p.x, p.y);
-  }
-  ctx.globalAlpha = 1;
-  rosterT -= dt; if (rosterT <= 0){ renderRoster(); rosterT = .5; }
-  requestAnimationFrame(frame);
-}
-
-function mood(c){
-  if (c.state === 'sleep') return ['Fait la sieste', 'zzz'];
-  if (c.state === 'flee') return ['Vexé', 'bad'];
-  if (c.state === 'chase') return ['Chasse !', 'good'];
-  if (c.state === 'fight') return c.fight && c.fight.phase === 'brawl' ? ['Se bagarre !', 'bad'] : c.fight && c.fight.phase === 'scuffle' ? ['Se chamaille', 'bad'] : ['Se toise', 'bad'];
-  if (c.state === 'ball' || c.state === 'toy') return ['Joue', 'good'];
-  if (c.state === 'tolitter' || c.state === 'litter') return ['Au petit coin', ''];
-  if (c.bladder > 80 && !c.onTree) return ['Cherche une litière', 'bad'];
-  if (c.state === 'drink') return ['Boit', 'good'];
-  if (c.state === 'todrink') return ['Va boire', ''];
-  if (c.thirst > 80) return ['A soif', 'bad'];
-  if (c.state === 'perch' && c.pKind === 'sill') return c.perchSleep ? [daylight > .5 ? 'Bain de soleil' : 'Dort à la fenêtre', 'zzz'] : ['Regarde dehors', 'good'];
-  if (c.state === 'perch') return c.perchSleep ? ['Dort en hauteur', 'zzz'] : ['Sur l’arbre à chat', 'good'];
-  if (c.state === 'totree' || c.state === 'jump') return [c.onTree && !c.jUp ? 'Redescend' : 'Grimpe', ''];
-  if (c.state === 'box') return ['Dans le carton', 'zzz'];
-  if (c.state === 'tobox') return ['Va au carton', ''];
-  if (c.state === 'eat' && !c.moving) return ['Mange', 'good'];
-  if (c.hunger > 70) return ['A faim', 'bad'];
-  if (c.happy > 75) return ['Aux anges', 'good'];
-  if (c.happy > 45) return ['Content', ''];
-  return ["S'ennuie", 'bad'];
-}
-function renderRoster(){
-  rosterEl.innerHTML = cats.map((c, i) => {
-    const [m, k] = mood(c);
-    return `<li><span class="sw" style="background:${c.coat.base}"></span><div><b>${c.name}</b><small>${c.coat.label} · ${c.trait} · voix ${c.voice.label}</small></div><span class="mood ${k}">${m}</span><button class="listen" data-cat="${i}" aria-label="Écouter ${c.name}" title="Écouter ${c.name}">♪</button><div class="bar" title="Bonheur"><i style="width:${Math.round(c.happy)}%"></i></div></li>`;
-  }).join('');
-  countEl.textContent = `Les résidents (${cats.length})`;
-  dayBtn.querySelector('span').textContent = daylight > .5 ? 'Passer à la nuit' : 'Passer au jour';
-  adoptBtn.disabled = cats.length >= MAX_CATS;
-  adoptBtn.textContent = cats.length >= MAX_CATS ? 'Salon complet' : '+ Adopter un chat';
-}
-
-/* ---------- input ---------- */
-function pos(e){ const r = cv.getBoundingClientRect(); return {x: e.clientX - r.left, y: e.clientY - r.top}; }
-function catAt(p){
-  let best = null, bd = Infinity;
-  for (const c of cats){ if (c.state === 'box' || c.state === 'jump') continue; const s = catScale(c); const d = Math.hypot(p.x - c.x, (p.y - (c.y - 28 * s)) * 0.9); if (d < 42 * s && d < bd){ bd = d; best = c; } }
-  return best;
-}
-cv.addEventListener('pointerdown', e => {
-  const p = pos(e);
-  if (tool !== 'laser'){
-    for (const f of fights){
-      const s = scaleAt(f.y);
-      if (Math.hypot(p.x - f.x, (p.y - (f.y - 28 * s)) * 1.2) < 62 * s){ endFight(f, 'separated'); return; }
-    }
-  }
-  if (tool === 'pet'){
-    const bs = scaleAt(box.y), oc = box.occupant;
-    if (oc && oc.state === 'box' && Math.abs(p.x - box.x) < 50 * bs && p.y < box.y + 4 && p.y > box.y - 64 * bs){
-      oc.y = box.y + 16 * bs; setState(oc, 'idle', 2.5); boxSound(false); say(oc, 'Mrrp !'); oc.happy = Math.min(100, oc.happy + 4);
-      return;
-    }
-    const c = catAt(p); if (c){ pet(c, p.x); return; }
-    const ty = toys.find(t => Math.hypot(p.x - t.x, p.y - (t.y - 6 * scaleAt(t.y))) < 18 * scaleAt(t.y) + 8);
-    if (ty) flickToy(ty);
-  }
-  else if (tool === 'scoop'){
-    for (const L of litters){
-      const s = scaleAt(L.y);
-      if (Math.abs(p.x - L.x) < 46 * s && p.y > L.y - 44 * s && p.y < L.y + 12 * s){
-        if (L.dirt > 0){ L.dirt = 0; L.clumps = []; sparkle(L.x, L.y - 22 * s, s); showHint('Litière propre !'); setTimeout(() => cleanSound(false), 30); }
-        else showHint('Cette litière est déjà propre.');
-        return;
-      }
-    }
-    for (let i = puddles.length - 1; i >= 0; i--){
-      const q = puddles[i];
-      if (Math.hypot(p.x - q.x, (p.y - q.y) * 2) < q.r * 1.5){ puddles.splice(i, 1); sparkle(q.x, q.y, scaleAt(q.y)); showHint('Tout propre !'); setTimeout(() => cleanSound(true), 30); return; }
-    }
-  }
-  else if (tool === 'ball'){
-    const ty = clamp(p.y, minY() - 6, H - 10), dx = p.x - ball.x, dy = ty - ball.y, d = Math.hypot(dx, dy) || 1, v = d * 1.05 + 20;
-    ball.vx = dx / d * v; ball.vy = dy / d * v; ball.vz = 260;
-  }
-  else if (tool === 'food'){
-    if (p.y < floorTop + 10) return;
-    if (bowls.filter(b => b.food > 0).length >= 3){ showHint('Trois gamelles, ça suffit ! Attends qu’ils les vident.'); return; }
-    const nb = {x: clamp(p.x, 30, W - 30), y: clamp(p.y, minY(), H - 12), food: 100, fade: 1};
-    bowls.push(nb);
-    setTimeout(kibbleSound, 30);
-    // the sound of kibble brings peckish cats running
-    for (const c of cats){
-      if ((c.state === 'idle' || c.state === 'wander') && c.hunger > 25 && Math.random() < .8){
-        c.bowl = nb; setState(c, 'eat'); setTimeout(() => say(c, pick(['Miaou !', 'Miam ?', 'Mrrp !'])), rand(150, 700));
-      }
-    }
-  } else if (tool === 'laser'){ laser.on = true; laser.x = p.x; laser.y = p.y; cv.setPointerCapture(e.pointerId); }
-});
-cv.addEventListener('pointermove', e => { if (tool !== 'laser') return; if (e.pointerType === 'mouse' || laser.on){ const p = pos(e); laser.on = true; laser.x = clamp(p.x, 0, W); laser.y = clamp(p.y, 0, H); } });
-cv.addEventListener('pointerup', e => { if (tool === 'laser' && e.pointerType !== 'mouse') laser.on = false; });
-cv.addEventListener('pointerleave', () => { if (tool === 'laser') laser.on = false; });
-
-document.querySelectorAll('[data-tool]').forEach(b => b.addEventListener('click', () => {
-  tool = b.dataset.tool; laser.on = false;
-  document.querySelectorAll('[data-tool]').forEach(x => x.setAttribute('aria-pressed', x === b));
-  cv.classList.toggle('laser', tool === 'laser');
-  showHint(HINTS[tool]);
-}));
-adoptBtn.addEventListener('click', () => {
-  if (cats.length >= MAX_CATS) return;
-  const c = makeCat(); c.x = W + 30; c.y = rand(minY(), H - 18); c.tx = rand(W * .5, W - 60); c.ty = c.y; c.state = 'wander';
-  cats.push(c); say(c, 'Bonjour ? Miaou !', 2.5); renderRoster();
-});
-
-function listen(e){
-  const b = e.target.closest('[data-cat]'); if (!b) return;
-  const c = cats[+b.dataset.cat]; if (!c) return;
-  audio(); setTimeout(() => say(c, pick(c.voice.words)), 40);
-}
-rosterEl.addEventListener('pointerdown', listen);
-rosterEl.addEventListener('click', e => { if (e.detail === 0) listen(e); });
-const dayBtn = document.getElementById('daynight');
-dayBtn.addEventListener('click', () => { let g = daylight > .5 ? 22 / 24 : 9 / 24; if (g <= dayPhase) g += 1; skipTo = g; });
-const soundBtn = document.getElementById('sound');
-soundBtn.addEventListener('click', () => {
-  soundOn = !soundOn;
-  soundBtn.querySelector('span').textContent = soundOn ? 'Son activé' : 'Son coupé';
-  if (soundOn){ audio(); setTimeout(() => meow(cats[0]), 60); } else if (actx) actx.suspend();
-});
-document.addEventListener('pointerdown', () => { if (soundOn) audio(); }, {capture: true});
-
-window.addEventListener('resize', resize);
-resize();
-ball.x = W * .42; ball.y = floorTop + (H - floorTop) * .62;
-initToys();
-let hintTimer = 0;
-function showHint(text){
-  hintEl.textContent = text; hintEl.classList.remove('gone');
-  clearTimeout(hintTimer); hintTimer = setTimeout(() => hintEl.classList.add('gone'), 4000);
-}
-showHint(HINTS.pet);
-for (let i = 0; i < 3; i++) cats.push(makeCat());
-cats[0].state = 'sleep'; cats[0].timer = 9;
-renderRoster();
-requestAnimationFrame(frame);
-})();
-</script>
+<script src="js/data.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/draw.js"></script>
+<script src="js/game.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>

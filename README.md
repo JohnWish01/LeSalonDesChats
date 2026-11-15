@@ -1,22 +1,31 @@
 ﻿# Le Salon des Chats
 
-Un petit salon interactif où vivent des chats, chacun avec son caractère et sa voix.
-Tout tient dans un seul fichier : joue directement en ligne sur https://johnwish01.github.io/LeSalonDesChats/, ou ouvre `index.html` dans un navigateur.
+Un petit jeu de gestion où l'on adopte des chats, aménage leur maison et prend soin d'eux.
+Joue directement en ligne sur https://johnwish01.github.io/LeSalonDesChats/
 
-## Ce qu'on peut faire
+## Comment jouer
 
-- **Caresser** les chats (mais pas trop, certains se vexent), lancer les jouets, séparer les chats qui se chamaillent
-- **Laser** : les chats poursuivent le point rouge
-- **Croquettes** : poser une gamelle, les chats affamés accourent
-- **Pelote** : lancer la pelote de laine
-- **Pelle** : nettoyer les litières et les petits accidents
-- **Passer au jour / à la nuit**, couper le son, **adopter** de nouveaux chats (jusqu'à 9)
+1. **Crée ton chat** : nom, pelage, voix et caractère.
+2. **Aménage la pièce**, vide au départ : gamelle, eau, litière, puis jouets, arbre à chat, panier, déco…
+3. **Prends soin de tes chats** : nourris-les, nettoie les litières, caresse-les, brosse-les, soigne-les s'ils tombent malades, sépare-les s'ils se bagarrent.
+4. Des chats heureux rapportent des **duchats** (la monnaie du jeu). Dépense-les à la **boutique** : meilleurs objets, nourriture de qualité, soins et nouveaux pelages.
+5. Réussis des **succès** pour débloquer **La Véranda** puis **Le Chat-teau**, et gagne les pelages rares (Doré, Galaxie) grâce aux défis.
+
+La partie est sauvegardée automatiquement dans le navigateur.
 
 ## Ce que font les chats tout seuls
 
-Ils se promènent, font la sieste (et ronflent), mangent, boivent à la fontaine, vont à la litière,
-grimpent sur l'arbre à chat, se cachent dans le carton, guettent les oiseaux depuis la fenêtre,
-jouent avec la souris, la balle à grelot et le poisson, et se chamaillent parfois.
+Ils se promènent, font la sieste (et ronflent), mangent, boivent, vont à la litière, grimpent aux arbres à chat,
+se cachent dans les cartons, dorment dans leur panier, font leurs griffes, guettent les oiseaux depuis la fenêtre,
+jouent avec leurs jouets, se chamaillent parfois, et peuvent tomber malades si on les néglige.
 
-Le salon suit un cycle jour/nuit (une journée dure 4 minutes) qui démarre à l'heure réelle.
-Tous les sons sont synthétisés en direct, sans fichier audio.
+Chaque chat a sa propre voix, et tous les sons sont synthétisés en direct, sans fichier audio.
+
+## Les fichiers
+
+- `index.html` : la page et les styles
+- `js/data.js` : pelages, voix, objets, nourriture, soins, pièces et succès
+- `js/audio.js` : tous les sons
+- `js/draw.js` : le dessin des chats, des objets et des pièces
+- `js/game.js` : la simulation, l'économie et la sauvegarde
+- `js/ui.js` : l'interface (écran titre, boutique, création de chat, aménagement…)
