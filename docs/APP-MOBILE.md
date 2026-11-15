@@ -55,8 +55,9 @@ chaque amélioration du jeu profite aux trois.
 | Node.js | Lancer Capacitor et les scripts | Installé |
 | Git | Envoyer le code sur GitHub | Installé |
 | Android Studio (avec son JDK intégré) | Compiler et tester l'app Android | Installé |
-| SDK Android | Les briques d'Android pour compiler | Se télécharge au premier lancement d'Android Studio (assistant de configuration, licences à accepter) |
-| Un téléphone Android en mode développeur, ou l'émulateur d'Android Studio | Tester l'app | Au choix |
+| SDK Android (Android 37, build-tools 36, adb) | Les briques d'Android pour compiler | Installé, licences acceptées |
+| Émulateur + téléphone virtuel « Medium Phone API 37 » | Tester l'app sans téléphone | Installé |
+| Un vrai téléphone Android en mode développeur | Tester la vibration pour de vrai | Optionnel |
 | Mac + Xcode | Compiler l'app iPhone | Impossible sous Windows (voir plus haut) |
 
 Les modules Capacitor s'installent dans le projet au moment de créer l'app (`npm install`) : rien à installer à l'avance.
