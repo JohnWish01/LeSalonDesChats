@@ -34,7 +34,7 @@ function newGameState(){
   return {
     v: 2, coins: 60, earned: 0, day: 1, dayPhase: (d.getHours() + d.getMinutes() / 60) / 24,
     inv: {},
-    food: {croq: 0, premium: 0, patee: 0}, care: {treat: 0, catnip: 0, vitamins: 0, kit: 0}, brush: false,
+    food: {croq: 0, premium: 0, patee: 0}, care: {treat: 0, catnip: 0, vitamins: 0, kit: 0}, brush: false, laser: false, vibrateOn: true,
     coats: ['roux', 'noir', 'gris', 'blanc'], rooms: ['salon'], room: 'salon', ach: {}, adoptions: 0, uid: 1,
     rel: {}, relFlags: {}, accInv: {}, clock: 0, catUid: 1,
     stats: {pets: 0, fills: 0, cleans: 0, separations: 0, placed: 0, birds: 0, heals: 0, patee: 0, brushes: 0, perfectDays: 0, accidentsToday: 0, fightsToday: 0, grown: 0},
@@ -44,7 +44,8 @@ function newGameState(){
 function makeCat(o){
   const tr = traitById(o.traitId);
   return {
-    name: o.name, coatId: o.coatId, coat: coatById(o.coatId), voice: o.voice || makeVoice(o.voiceId), traitId: tr.id,
+    name: o.name, coatId: o.coatId, coat: makeCoat(o.coatId, o.stripes, o.stripeColor), voice: o.voice || makeVoice(o.voiceId), traitId: tr.id,
+    stripes: o.stripes ?? null, stripeColor: o.stripeColor || null,
     lazy: o.lazy ?? rand(...tr.lazy), patience: o.patience ?? Math.round(rand(...tr.patience)),
     happy: o.happy ?? 65, hunger: o.hunger ?? 25, thirst: o.thirst ?? 20, bladder: o.bladder ?? 15, energy: o.energy ?? 80,
     health: o.health ?? 100, sick: !!o.sick,
@@ -59,7 +60,7 @@ function makeCat(o){
   };
 }
 const CAT_SAVE = ['name', 'coatId', 'voice', 'traitId', 'lazy', 'patience', 'happy', 'hunger', 'thirst', 'bladder', 'energy', 'health', 'sick',
-  'id', 'kitten', 'born', 'favToy', 'favFood', 'favSpot', 'known', 'acc', 'tricks', 'mem'];
+  'id', 'kitten', 'born', 'favToy', 'favFood', 'favSpot', 'known', 'acc', 'tricks', 'mem', 'stripes', 'stripeColor'];
 
 /* ---------- relations entre chats (-100 rivaux … +100 meilleurs amis) ---------- */
 const relKey = (a, b) => a.id < b.id ? `${a.id}-${b.id}` : `${b.id}-${a.id}`;
@@ -151,7 +152,7 @@ function startFromSave(s){
   G.cats = (s.cats || []).map(p => { const c = makeCat(p); c._u = p.u; c._v = p.v; return c; });
   for (const c of G.cats) if (!c.id) c.id = G.catUid++;
   dayPhase = s.dayPhase ?? G.dayPhase;
-  soundOn = G.soundOn !== false;
+  soundOn = G.soundOn !== false; vibrateOn = G.vibrateOn !== false;
   enterGame();
   for (const c of G.cats){ c.x = clamp((c._u ?? .5) * W, 30, W - 30); c.y = clamp(floorTop + clamp(c._v ?? .5, .1, 1) * (H - floorTop), minY(), H - 16); }
 }
@@ -626,6 +627,7 @@ function pet(c, px){
   }
   c.happy = Math.min(100, c.happy + 9);
   c.dir = px > c.x ? 1 : -1;
+  purrVibration();
   say(c, pick(['Prrrr', 'Prrrrr…', 'Mrrrou']));
   if (c.state === 'perch') c.timer = Math.max(c.timer, 3);
   else if (!['eat', 'drink', 'litter', 'jump', 'fight'].includes(c.state)) setState(c, 'idle', rand(2.5, 4));
@@ -786,13 +788,12 @@ let skipTo = null;
 function newDay(){
   G.day++;
   if (!G.cats.length) return;
-  const room = roomById(G.room), avg = G.cats.reduce((a, c) => a + c.happy, 0) / G.cats.length;
   const perfect = G.stats.accidentsToday === 0 && G.stats.fightsToday === 0;
-  const bonus = Math.round((G.cats.length * avg / 100 * 8 + (perfect ? 20 : 0)) * room.mult);
+  const bonus = 10;
   if (perfect) G.stats.perfectDays++;
   G.stats.accidentsToday = 0; G.stats.fightsToday = 0;
   addCoins(bonus, W / 2, floorTop);
-  toast(`Jour ${G.day}`, `Bonus du matin : +${bonus} ${COIN}${perfect ? ' (journée parfaite !)' : ''}`);
+  toast(`Jour ${G.day}`, `Bonus de la journée : +${bonus} ${COIN}${perfect ? ' (journée parfaite !)' : ''}`);
 }
 function payIncome(){
   const room = roomById(G.room); let total = 0;
@@ -894,7 +895,7 @@ function frame(ts){
   const dt = Math.min(.05, (ts - last) / 1000); last = ts;
   if (screen === 'title') drawTitle(ts / 1000);
   else if (screen === 'game'){ step(dt); render(ts / 1000); }
-  if (creatorOpen) renderCatPreview($('crPreview'), coatById(cr.coatId), ts / 1000);
+  if (creatorOpen) renderCatPreview($('crPreview'), makeCoat(cr.coatId, cr.stripes, cr.stripeColor), ts / 1000);
   if (sheetCat) renderCatPortrait($('shPreview'), sheetCat, ts / 1000);
   requestAnimationFrame(frame);
 }

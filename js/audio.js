@@ -297,6 +297,23 @@ function bellJingle(){
   for (let j = 0; j < 2; j++){ const f = rand(4200, 5600); tone(a, t + j * .05, 'sine', f, f, .18, .012); }
 }
 
+/* ---------- vibrations (téléphone) ----------
+   Dans l'app Android / iOS (Capacitor), on passe par le module natif Haptics.
+   Dans un navigateur, on utilise navigator.vibrate (Android ; iPhone ne le permet pas). */
+let vibrateOn = true;
+const nativeHaptics = () => window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Haptics;
+const canVibrate = () => !!nativeHaptics() || ('vibrate' in navigator && matchMedia('(pointer: coarse)').matches);
+function vibrate(pattern){
+  if (!vibrateOn) return;
+  try {
+    const h = nativeHaptics();
+    if (h){ const n = Array.isArray(pattern) ? Math.ceil(pattern.length / 2) : 1; for (let i = 0; i < n; i++) setTimeout(() => h.impact({style: 'LIGHT'}), i * 70); return; }
+    if (navigator.vibrate) navigator.vibrate(pattern);
+  } catch (e) {}
+}
+/* une caresse : trois petites pulsations, comme un ronronnement */
+function purrVibration(){ vibrate([18, 45, 18, 45, 18]); }
+
 /* ---------- interface ---------- */
 function coinSound(){
   if (!ready()) return; const a = actx, t = a.currentTime;

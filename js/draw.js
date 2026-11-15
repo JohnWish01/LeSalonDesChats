@@ -5,6 +5,7 @@ const OUT = 'rgba(20,10,12,.35)';
 function blob(fill, path){ ctx.beginPath(); path(); ctx.fillStyle = fill; ctx.fill(); ctx.lineWidth = 1.6; ctx.strokeStyle = OUT; ctx.stroke(); }
 const ell = (x, y, rx, ry, r = 0) => () => ctx.ellipse(x, y, rx, ry, r, 0, Math.PI * 2);
 const now = () => performance.now() / 1000;
+const striped = co => co.stripes ?? defaultStripes(co);
 function withCtx(c2, fn){ const old = ctx; ctx = c2; try { fn(); } finally { ctx = old; } }
 
 /* ================= CHATS ================= */
@@ -14,11 +15,13 @@ const STARS = [[-.6, -.3], [-.2, -.6], [.15, -.2], [.5, -.5], [-.4, .2], [.3, .3
 function bodyPattern(co, x, y, rx, ry){
   const T = now();
   ctx.save(); ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); ctx.clip();
+  if (striped(co)){
+    ctx.strokeStyle = co.stripeColor || co.dark; ctx.globalAlpha = co.pat === 'fluffy' ? .55 : 1; ctx.lineWidth = 3.2; ctx.lineCap = 'round';
+    for (let i = -2; i <= 2; i++){ ctx.beginPath(); ctx.moveTo(x + i * rx * .36 - 3, y - ry); ctx.quadraticCurveTo(x + i * rx * .36 + 4, y - ry * .2, x + i * rx * .36 - 2, y + ry * .25); ctx.stroke(); }
+    ctx.globalAlpha = 1;
+  }
   switch (co.pat){
     case 'tabby': case 'fluffy':
-      ctx.strokeStyle = co.dark; ctx.globalAlpha = co.pat === 'fluffy' ? .55 : 1; ctx.lineWidth = 3.2; ctx.lineCap = 'round';
-      for (let i = -2; i <= 2; i++){ ctx.beginPath(); ctx.moveTo(x + i * rx * .36 - 3, y - ry); ctx.quadraticCurveTo(x + i * rx * .36 + 4, y - ry * .2, x + i * rx * .36 - 2, y + ry * .25); ctx.stroke(); }
-      ctx.globalAlpha = 1;
       if (co.pat === 'fluffy'){ ctx.fillStyle = '#e8d6c0'; ctx.beginPath(); ctx.ellipse(x + rx * .62, y + ry * .15, rx * .35, ry * .85, 0, 0, Math.PI * 2); ctx.fill(); }
       break;
     case 'tux':

@@ -98,7 +98,7 @@ function head(co, hx, hy, r, closed, x = {}){
   if (co.pat === 'tux'){ ctx.fillStyle = '#f4efe7'; ctx.beginPath(); ctx.ellipse(hx + r * .7, hy + r * .5, r * .55, r * .45, 0, 0, Math.PI * 2); ctx.fill(); }
   if (co.pat === 'calico'){ ctx.fillStyle = '#2a2527'; ctx.beginPath(); ctx.ellipse(hx - r * .5, hy - r * .5, r * .6, r * .5, 0, 0, Math.PI * 2); ctx.fill(); }
   if (co.pat === 'fluffy'){ ctx.fillStyle = '#e8d6c0'; ctx.beginPath(); ctx.ellipse(hx + r * .7, hy + r * .55, r * .5, r * .4, 0, 0, Math.PI * 2); ctx.fill(); }
-  if (co.pat === 'tabby' || co.pat === 'fluffy'){ ctx.strokeStyle = co.dark; ctx.lineWidth = 2.2; ctx.lineCap = 'round'; for (let i = 0; i < 3; i++){ ctx.beginPath(); ctx.moveTo(hx - r * .2 + i * r * .25, hy - r * .9); ctx.lineTo(hx - r * .1 + i * r * .25, hy - r * .55); ctx.stroke(); } }
+  if (striped(co)){ ctx.strokeStyle = co.stripeColor || co.dark; ctx.lineWidth = 2.2; ctx.lineCap = 'round'; for (let i = 0; i < 3; i++){ ctx.beginPath(); ctx.moveTo(hx - r * .2 + i * r * .25, hy - r * .9); ctx.lineTo(hx - r * .1 + i * r * .25, hy - r * .55); ctx.stroke(); } }
   if (co.pat === 'spots'){ ctx.fillStyle = co.dark; for (const [u, v] of [[-.3, -.55], [0, -.7], [.25, -.5], [-.55, -.1]]){ ctx.beginPath(); ctx.arc(hx + u * r, hy + v * r, r * .1, 0, Math.PI * 2); ctx.fill(); } }
   if (co.pat === 'sphynx'){ ctx.strokeStyle = 'rgba(150,90,80,.5)'; ctx.lineWidth = 1; for (let i = 0; i < 3; i++){ ctx.beginPath(); ctx.arc(hx, hy - r * .1 - i * r * .14, r * .45, Math.PI * 1.2, Math.PI * 1.8); ctx.stroke(); } }
   if (co.pat === 'galaxy'){ ctx.fillStyle = '#fff6c8'; for (const [u, v] of [[-.4, -.5], [.1, -.65], [-.6, .1]]){ ctx.beginPath(); ctx.arc(hx + u * r, hy + v * r, 1.1, 0, Math.PI * 2); ctx.fill(); } }

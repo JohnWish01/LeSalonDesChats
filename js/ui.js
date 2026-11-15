@@ -37,7 +37,10 @@ function updateToolbar(){
   cs.value = cvv;
   $('treatCount').textContent = G.care.treat || 0;
   $('t-brush').classList.toggle('locked', !G.brush);
+  $('t-laser').classList.toggle('locked', !G.laser);
   $('btnSound').querySelector('span').textContent = soundOn ? 'Son activé' : 'Son coupé';
+  $('btnVibrate').hidden = !canVibrate();
+  $('btnVibrate').querySelector('span').textContent = vibrateOn ? 'Vibrations' : 'Sans vibration';
 }
 const HINTS = {
   pet: 'Clique sur un chat pour le caresser (pas trop !), sur un jouet pour le lancer, ou sur deux chats qui se chamaillent pour les séparer.',
@@ -50,6 +53,11 @@ const HINTS = {
   trick: 'Clique sur un chat pour qu’il fasse un tour qu’il connaît (il gagne des duchats). On apprend les tours depuis sa fiche.'
 };
 function setTool(t){
+  if ((t === 'laser' || t === 'brush') && !G[t]){
+    errorSound();
+    showHint(`${t === 'laser' ? 'Le pointeur laser' : 'La brosse'} s’achète à la boutique, onglet Soins.`, 5000);
+    return;
+  }
   tool = t; laser.on = false;
   document.querySelectorAll('[data-tool]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tool === t));
   cv.classList.toggle('laser', t === 'laser');
@@ -315,7 +323,7 @@ function renderShop(){
   } else if (shopTab === 'food'){
     cards = FOODS.map(f => card({kind: 'food', id: f.id, name: f.name, desc: f.desc, price: f.price, owned: `${G.food[f.id] || 0} portion(s) en stock`}));
   } else if (shopTab === 'care'){
-    cards = CARES.map(c => card({kind: 'care', id: c.id, name: c.name, desc: c.desc, price: c.price, owned: c.once ? (G.brush ? 'Déjà achetée' : '') : `${G.care[c.id] || 0} en stock`, done: c.once && G.brush}));
+    cards = CARES.map(c => card({kind: 'care', id: c.id, name: c.name, desc: c.desc, price: c.price, owned: c.once ? (G[c.id] ? 'Déjà acheté' : '') : `${G.care[c.id] || 0} en stock`, done: c.once && G[c.id]}));
   } else if (shopTab === 'acc'){
     cards = ACCESSORIES.map(a => {
       const worn = G.cats.filter(c => Object.values(c.acc).includes(a.id)).length;
@@ -346,7 +354,7 @@ function card(o){
 function buy(kind, id){
   if (kind === 'item'){ const d = ITEMS[id]; if (!spend(d.price)) return; G.inv[id] = (G.inv[id] || 0) + 1; toast('Acheté !', `${d.name} : à placer avec Aménager.`); }
   else if (kind === 'food'){ const f = foodById(id); if (!spend(f.price)) return; G.food[id] = (G.food[id] || 0) + f.pack; }
-  else if (kind === 'care'){ const c = CARES.find(x => x.id === id); if (!spend(c.price)) return; if (c.once) G.brush = true; else G.care[id] = (G.care[id] || 0) + c.pack; }
+  else if (kind === 'care'){ const c = CARES.find(x => x.id === id); if (!spend(c.price)) return; if (c.once){ G[c.id] = true; toast('Acheté !', `${c.name} : l’outil est débloqué.`); } else G.care[id] = (G.care[id] || 0) + c.pack; }
   else if (kind === 'acc'){ const a = ACC[id]; if (!spend(a.price)) return; G.accInv[id] = (G.accInv[id] || 0) + 1; toast('Acheté !', `${a.name} : mets-le à un chat depuis sa fiche (clique sur sa carte).`); }
   else if (kind === 'coat'){ const co = coatById(id); if (G.coats.includes(id) || !spend(co.price)) return; G.coats.push(id); toast('Nouveau pelage', `${co.label} est disponible pour tes prochains chats.`); }
   buySound(); updateToolbar(); renderShop(); if (buildMode) renderBuildBar(); saveGame();
@@ -391,7 +399,7 @@ function adoptCost(){ return G.adoptions < 2 ? 0 : 40; }
 function openCreator(first){
   const room = roomById(G.room);
   if (!first && G.cats.length >= room.maxCats){ errorSound(); showHint(`${room.name} est complet (${room.maxCats} chats). Débloque une plus grande pièce !`, 6000); return; }
-  cr.first = first; cr.name = ''; cr.kitten = false; cr.coatId = pick(G.coats); cr.voiceId = pick(VOICES).id; cr.voice = makeVoice(cr.voiceId); cr.traitId = pick(TRAITS).id;
+  cr.first = first; cr.name = ''; cr.kitten = false; cr.stripes = null; cr.stripeColor = null; cr.coatId = pick(G.coats); cr.voiceId = pick(VOICES).id; cr.voice = makeVoice(cr.voiceId); cr.traitId = pick(TRAITS).id;
   $('crName').value = ''; $('crName').placeholder = pick(NAMES);
   $('crCancel').hidden = first;
   $('crTitle').textContent = first ? 'Ton premier chat' : 'Adopter un chat';
@@ -405,6 +413,12 @@ function renderCreator(){
   $('crVoices').innerHTML = VOICES.map(v => `<button class="chip${cr.voiceId === v.id ? ' on' : ''}" data-voice="${v.id}">♪ ${esc(v.label)}</button>`).join('');
   $('crTraits').innerHTML = TRAITS.map(t => `<button class="chip${cr.traitId === t.id ? ' on' : ''}" data-trait="${t.id}" title="${esc(t.desc)}">${esc(t.label)}</button>`).join('');
   $('crTraitDesc').textContent = traitById(cr.traitId).desc;
+  const ns = NO_STRIPES.has(cr.coatId), eff = makeCoat(cr.coatId, cr.stripes, cr.stripeColor);
+  $('crStripes').innerHTML = ns ? '<small class="muted">Ce pelage ne peut pas être tigré.</small>'
+    : [[false, 'Uni'], [true, 'Tigré']].map(([k, l]) => `<button class="chip${eff.stripes === k ? ' on' : ''}" data-stripes="${k}">${l}</button>`).join('');
+  $('crStripeColors').hidden = ns || !eff.stripes;
+  $('crStripeColors').innerHTML = [[coatById(cr.coatId).dark, 'Assortie au pelage'], ...STRIPE_COLORS.filter(([c]) => c !== coatById(cr.coatId).dark)]
+    .map(([col, l]) => `<button class="swatch${eff.stripeColor === col ? ' on' : ''}" data-scol="${col}" title="${l}" aria-label="Rayures : ${l}" style="background:${col}"></button>`).join('');
   $('crAges').innerHTML = [[false, 'Adulte'], [true, 'Chaton']].map(([k, l]) => `<button class="chip${cr.kitten === k ? ' on' : ''}" data-kitten="${k}">${l}</button>`).join('');
   $('crAgeDesc').textContent = cr.kitten ? 'Plus petit et très joueur, il grandit en 3 jours de jeu.' : 'Un chat adulte, prêt à s’installer.';
   const co = coatById(cr.coatId), has = G.coats.includes(co.id), cost = adoptCost();
@@ -420,7 +434,8 @@ function adoptFromCreator(){
   if (!G.coats.includes(co.id) || !spend(cost)) return;
   const name = ($('crName').value.trim() || $('crName').placeholder).slice(0, 14);
   const voice = Object.assign({}, cr.voice); if (cr.kitten) voice.pitch *= 1.25;
-  const c = makeCat({name, coatId: co.id, voice, traitId: cr.traitId, kitten: cr.kitten});
+  const c = makeCat({name, coatId: co.id, voice, traitId: cr.traitId, kitten: cr.kitten,
+    stripes: NO_STRIPES.has(co.id) ? null : cr.stripes, stripeColor: cr.stripeColor});
   if (cr.kitten){ c.lazy = Math.max(0, c.lazy - .2); c.energy = 100; }
   for (const o of G.cats) G.rel[relKey(c, o)] = Math.round(rand(-15, 25) - (c.traitId === 'susceptible' || o.traitId === 'susceptible' ? 10 : 0));
   c.x = W + 30; c.y = rand(minY(), H - 18); c.tx = rand(W * .5, W - 60); c.ty = c.y; c.state = 'wander';
@@ -588,7 +603,10 @@ function init(){
   });
 
   $('crRandom').addEventListener('click', () => { $('crName').value = pick(NAMES); });
-  $('crCoats').addEventListener('click', e => { const b = e.target.closest('[data-coat]'); if (b){ cr.coatId = b.dataset.coat; renderCreator(); } });
+  $('crCoats').addEventListener('click', e => { const b = e.target.closest('[data-coat]'); if (b){ cr.coatId = b.dataset.coat; cr.stripes = null; cr.stripeColor = null; renderCreator(); } });
+  $('crStripes').addEventListener('click', e => { const b = e.target.closest('[data-stripes]'); if (b){ cr.stripes = b.dataset.stripes === 'true'; renderCreator(); } });
+  $('crStripeColors').addEventListener('click', e => { const b = e.target.closest('[data-scol]'); if (b){ cr.stripeColor = b.dataset.scol; renderCreator(); } });
+  $('btnVibrate').addEventListener('click', () => { vibrateOn = !vibrateOn; G.vibrateOn = vibrateOn; if (vibrateOn) purrVibration(); updateToolbar(); });
   $('crVoices').addEventListener('click', e => { const b = e.target.closest('[data-voice]'); if (b){ cr.voiceId = b.dataset.voice; cr.voice = makeVoice(cr.voiceId); renderCreator(); audio(); setTimeout(() => meow({voice: cr.voice}), 40); } });
   $('crTraits').addEventListener('click', e => { const b = e.target.closest('[data-trait]'); if (b){ cr.traitId = b.dataset.trait; renderCreator(); } });
   $('crUnlock').addEventListener('click', () => { const co = coatById(cr.coatId); if (!G.coats.includes(co.id) && spend(co.price)){ G.coats.push(co.id); buySound(); renderCreator(); saveGame(); } });

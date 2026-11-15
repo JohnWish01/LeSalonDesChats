@@ -103,8 +103,24 @@ const CARES = [
   {id:'catnip',   name:'Herbe à chat',     price:8,  pack:2, desc:'Rend un chat fou de joie pendant un moment. 2 doses.'},
   {id:'vitamins', name:'Vitamines',        price:10, pack:2, desc:'+30 santé. 2 doses.'},
   {id:'kit',      name:'Trousse de soins', price:25, pack:1, desc:'Guérit complètement un chat malade.'},
-  {id:'brush',    name:'Brosse',           price:40, once:true, desc:'Un outil pour brosser les chats : ils adorent, et c’est bon pour leur santé.'}
+  {id:'brush',    name:'Brosse',           price:40, once:true, desc:'Un outil pour brosser les chats : ils adorent, et c’est bon pour leur santé.'},
+  {id:'laser',    name:'Pointeur laser',   price:30, once:true, desc:'Le point rouge que les chats adorent poursuivre. Débloque l’outil Laser.'}
 ];
+
+/* Rayures : tigré ou non, et couleur des rayures (impossible pour ces pelages). */
+const NO_STRIPES = new Set(['sphynx', 'bleu', 'galaxie']);
+const STRIPE_COLORS = [
+  ['#2a2527', 'Noir'], ['#5d626b', 'Gris foncé'], ['#a9561a', 'Roux foncé'], ['#c4914f', 'Caramel'],
+  ['#6b4428', 'Chocolat'], ['#e8d6c0', 'Crème clair'], ['#f4efe7', 'Blanc'], ['#d9a43a', 'Doré']
+];
+const defaultStripes = co => co.pat === 'tabby' || co.pat === 'fluffy';
+function makeCoat(id, stripes, stripeColor){
+  const b = coatById(id);
+  return Object.assign({}, b, {
+    stripes: NO_STRIPES.has(id) ? false : (stripes ?? defaultStripes(b)),
+    stripeColor: stripeColor || b.dark
+  });
+}
 
 /* Accessoires : un emplacement au cou, un sur la tête, un sur le visage. */
 const ACCESSORIES = [
