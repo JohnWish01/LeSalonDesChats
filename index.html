@@ -528,6 +528,26 @@ function sulk(c){
   o.connect(f).connect(g).connect(a.destination);
   o.start(t2); l.start(t2); o.stop(t2 + d + .05); l.stop(t2 + d + .05);
 }
+/* a happy cat: a soft rolled "mrrr" that lifts into a bright little "-ip!" */
+function happySound(c){
+  if (!ready()) return;
+  const a = actx, t = a.currentTime, p = c ? c.voice.pitch : 1;
+  [[0, .16, 480, 700, 45], [.2, .22, 620, 980, 15]].forEach(([d0, d, f1, f2, vib]) => {
+    const tt = t + d0, o = a.createOscillator(), f = a.createBiquadFilter(), g = a.createGain(), l = a.createOscillator(), lg = a.createGain();
+    o.type = 'triangle'; o.frequency.setValueAtTime(f1 * p, tt); o.frequency.exponentialRampToValueAtTime(f2 * p, tt + d);
+    l.frequency.value = 20; lg.gain.value = vib * p; l.connect(lg).connect(o.frequency);
+    f.type = 'bandpass'; f.frequency.value = 1400 * p; f.Q.value = 1;
+    g.gain.setValueAtTime(0, tt); g.gain.linearRampToValueAtTime(.15, tt + .02); g.gain.exponentialRampToValueAtTime(.001, tt + d);
+    o.connect(f).connect(g).connect(a.destination);
+    o.start(tt); l.start(tt); o.stop(tt + d + .03); l.stop(tt + d + .03);
+  });
+}
+function cheer(c){
+  c.bubble = pick(['Mrrrip ♪', 'Mrrr-iiip !', 'Brrrip ♪']); c.bubbleT = 1.6;
+  happySound(c);
+  const s = catScale(c);
+  for (let i = 0; i < 2; i++) fx.push({x: c.x + rand(-12, 12) * s, y: c.y - 62 * s, vx: rand(-10, 10), vy: rand(-40, -28), life: 1.1, size: rand(11, 15) * s});
+}
 function swat(){
   if (!ready()) return; const a = actx, t = actx.currentTime;
   noiseBurst(a, t, .08, 'lowpass', 900, 1, .12); noiseBurst(a, t + .01, .03, 'highpass', 3000, 1, .05);
@@ -695,6 +715,12 @@ function update(c, dt){
   c.energy = clamp(c.energy + (c.state === 'sleep' ? dt * 7 : -dt * (c.state === 'chase' ? 3 : 0.7)), 0, 100);
   c.tailT += dt;
   if (c.twitch > 0) c.twitch -= dt;
+  // contentment: a happy chirp when a cat becomes really happy, and now and then while it stays so
+  if (c.happy > 80 && !asleep(c) && c.state !== 'fight' && c.state !== 'box'){
+    if (!c.wasHappy) cheer(c);
+    else if ((c.state === 'idle' || c.state === 'wander') && !c.bubble && Math.random() < dt * .015) cheer(c);
+  }
+  c.wasHappy = c.happy > 80 ? true : c.happy < 70 ? false : c.wasHappy;
   if (c.bubbleT > 0){ c.bubbleT -= dt; if (c.bubbleT <= 0) c.bubble = null; }
   else if (c.state !== 'sleep' && Math.random() < dt * 0.035) say(c, pick(Math.random() < .75 ? c.voice.words : CHATTER));
 
