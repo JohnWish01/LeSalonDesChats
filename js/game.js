@@ -299,7 +299,12 @@ function update(c, dt){
   if (c.sick && !resting){ c.sneezeT = (c.sneezeT ?? 3) - dt; if (c.sneezeT <= 0){ c.sneezeT = rand(6, 11); say(c, 'Atchoum !', 1.2); } }
 
   if (c.bubbleT > 0){ c.bubbleT -= dt; if (c.bubbleT <= 0) c.bubble = null; }
-  else if (!resting && Math.random() < dt * .03) say(c, pick(Math.random() < .75 ? voiceDef(c.voice).words : CHATTER));
+  else if (!resting && (c.chatCd = (c.chatCd ?? rand(5, 15)) - dt) <= 0 && Math.random() < dt * .012){
+    // bavardage spontané : plus rare, jamais deux fois le même mot de suite
+    const pool = (Math.random() < .7 ? voiceDef(c.voice).words : CHATTER).filter(w => w !== c.lastWord);
+    c.lastWord = pick(pool); c.chatCd = rand(10, 22);
+    say(c, c.lastWord);
+  }
 
   if (c.happy > 80 && !resting && c.state !== 'fight' && c.state !== 'box'){
     if (!c.wasHappy) cheer(c);

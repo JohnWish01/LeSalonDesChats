@@ -395,7 +395,8 @@ function drawProductIcon(cnv, kind, id){
 /* ---------- création de chat ---------- */
 let creatorOpen = false;
 const cr = {name: '', coatId: 'roux', voiceId: 'classic', voice: null, traitId: 'calin', first: false, kitten: false};
-function adoptCost(){ return G.adoptions < 2 ? 0 : 40; }
+const ADOPT_PRICE = 250;
+function adoptCost(){ return cr.first ? 0 : ADOPT_PRICE; }
 function openCreator(first){
   const room = roomById(G.room);
   if (!first && G.cats.length >= room.maxCats){ errorSound(); showHint(`${room.name} est complet (${room.maxCats} chats). Débloque une plus grande pièce !`, 6000); return; }
@@ -426,7 +427,7 @@ function renderCreator(){
   const un = $('crUnlock');
   if (!has && !co.challenge){ un.hidden = false; un.innerHTML = `Débloquer ce pelage ${priceTag(co.price)}`; un.disabled = G.coins < co.price; }
   else un.hidden = true;
-  $('crMsg').textContent = !has ? (co.challenge ? `Pelage à gagner : ${ACH.find(a => a.id === co.challenge).desc}` : `Ce pelage est verrouillé : débloque-le pour ${co.price} ${COIN}.`) : (cost ? `Adoption : ${cost} ${COIN} (tu en as ${G.coins}).` : 'Adoption gratuite !');
+  $('crMsg').textContent = !has ? (co.challenge ? `Pelage à gagner : ${ACH.find(a => a.id === co.challenge).desc}` : `Ce pelage est verrouillé : débloque-le pour ${co.price} ${COIN}.`) : (cost ? `Adoption : ${cost} ${COIN} (tu en as ${G.coins}).` : 'Ton premier chat t’attend : son adoption est offerte pour démarrer.');
   $('crAdopt').disabled = !has || G.coins < cost;
 }
 function adoptFromCreator(){

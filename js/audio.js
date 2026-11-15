@@ -49,12 +49,19 @@ function voiceNote(a, v, t, d, p){
   o.connect(f).connect(g).connect(a.destination);
   o.start(t); lfo.start(t); o.stop(t + d + .05); lfo.stop(t + d + .05);
 }
+/* Chaque miaulement varie un peu (hauteur, durée, forme) pour ne jamais sonner pareil deux fois. */
+const MEOW_SHAPES = ['classic', 'plaintive', 'chirp', 'squeak', 'low'];
 function meow(c, kind = 'meow'){
   if (!ready() || !c) return;
-  const v = c.voice, a = actx, t0 = a.currentTime;
-  const p = v.pitch * (kind === 'short' ? 1.2 : 1);
-  const d = (kind === 'short' ? .22 : kind === 'long' ? .75 : .48) * v.len;
-  if (v.id === 'double' && kind !== 'short'){ voiceNote(a, v, t0, d * .5, p); voiceNote(a, v, t0 + d * .5 + .06, d * .55, p * 1.08); }
+  const base = c.voice, a = actx, t0 = a.currentTime;
+  const v = Object.assign({}, base, {vib: base.vib * rand(.7, 1.4)});
+  if (Math.random() < .25 && base.id !== 'double') v.id = pick(MEOW_SHAPES.filter(s => s !== base.id && !(base.id === 'low' && s === 'squeak') && !(base.id === 'squeak' && s === 'low')));
+  const p = base.pitch * (kind === 'short' ? 1.2 : 1) * rand(.9, 1.1);
+  const d = (kind === 'short' ? .22 : kind === 'long' ? .75 : .48) * base.len * rand(.8, 1.25);
+  const r = Math.random();
+  if (base.id === 'double' && kind !== 'short'){ voiceNote(a, v, t0, d * .5, p); voiceNote(a, v, t0 + d * .5 + .06, d * .55, p * rand(1.02, 1.12)); }
+  else if (kind !== 'short' && r < .15){ voiceNote(a, v, t0, d * .35, p * 1.1); voiceNote(a, v, t0 + d * .4, d * .7, p); }   // « mi-aou » en deux temps
+  else if (kind !== 'short' && r < .3) voiceNote(a, Object.assign({}, v, {id: 'chirp'}), t0, d * .45, p * 1.05);           // petit « mrrp » roulé
   else voiceNote(a, v, t0, d, p);
 }
 function purr(pitch = 1){
