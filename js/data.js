@@ -106,10 +106,42 @@ const CARES = [
   {id:'brush',    name:'Brosse',           price:40, once:true, desc:'Un outil pour brosser les chats : ils adorent, et c’est bon pour leur santé.'}
 ];
 
+/* Accessoires : un emplacement au cou, un sur la tête, un sur le visage. */
+const ACCESSORIES = [
+  {id:'collarRed',  slot:'neck', name:'Collier rouge',      price:20,  color:'#d23a3a', desc:'Un classique.'},
+  {id:'collarBlue', slot:'neck', name:'Collier bleu',       price:20,  color:'#3a6ad2', desc:'Bleu comme le ciel.'},
+  {id:'collarBell', slot:'neck', name:'Collier à clochette', price:45, color:'#2a9a6a', bell:true, desc:'Il tinte quand le chat se promène.'},
+  {id:'bandana',    slot:'neck', name:'Bandana',            price:30,  color:'#e8a64e', desc:'Pour un look d’aventurier.'},
+  {id:'bow',        slot:'neck', name:'Nœud papillon',      price:35,  color:'#e05a9a', desc:'Très chic.'},
+  {id:'flower',     slot:'head', name:'Fleur',              price:25,  color:'#ff9ab8', desc:'Une jolie fleur à l’oreille.'},
+  {id:'beret',      slot:'head', name:'Béret',              price:50,  color:'#c23a4e', desc:'Oh là là !'},
+  {id:'hat',        slot:'head', name:'Chapeau melon',      price:60,  color:'#2a2228', desc:'Distingué, forcément.'},
+  {id:'crown',      slot:'head', name:'Couronne',           price:250, color:'#f2c24a', desc:'Pour le roi ou la reine du salon.'},
+  {id:'glasses',    slot:'face', name:'Lunettes rondes',    price:40,  color:'#2a2228', desc:'Un air très intelligent.'}
+];
+const ACC = Object.fromEntries(ACCESSORIES.map(a => [a.id, a]));
+const SLOTS = [['neck', 'Cou'], ['head', 'Tête'], ['face', 'Visage']];
+
+/* Tours à apprendre avec des friandises : séances nécessaires et duchats gagnés à chaque démonstration. */
+const TRICKS = [
+  {id:'sit',   name:'Assis',          sessions:3, reward:2},
+  {id:'paw',   name:'Donne la patte', sessions:5, reward:3},
+  {id:'high5', name:'High-five',      sessions:8, reward:5}
+];
+
+/* Préférences secrètes de chaque chat, à découvrir en jouant. */
+const TOY_TYPES = ['mouse', 'bell', 'fish', 'yarn', 'robot'];
+const PREF_LABEL = {
+  toy:  {mouse:'la souris', bell:'la balle à grelot', fish:'le poisson', yarn:'la pelote de laine', robot:'la souris mécanique'},
+  food: {croq:'les croquettes', premium:'les croquettes premium', patee:'la pâtée gourmet'},
+  spot: {tree:'l’arbre à chat', box:'le carton', bed:'le panier', sill:'la fenêtre'}
+};
+const PREF_TITLE = {toy:'Jouet préféré', food:'Plat préféré', spot:'Endroit préféré'};
+
 const ROOMS = [
   {id:'salon',   name:'Le Salon',     maxCats:5,  mult:1,   desc:'Un petit salon douillet pour commencer.', req:null},
   {id:'veranda', name:'La Véranda',   maxCats:8,  mult:1.5, desc:'Lumineuse et pleine d’oiseaux. Jusqu’à 8 chats, et 50 % de duchats en plus.', req:{ach:6, earned:400}},
-  {id:'chateau', name:'Le Chat-teau', maxCats:12, mult:2,   desc:'Un château pour vos majestés félines. Jusqu’à 12 chats, et les duchats doublés.', req:{ach:13, earned:1500}}
+  {id:'chateau', name:'Le Chat-teau', maxCats:12, mult:2,   desc:'Un château pour vos majestés félines. Jusqu’à 12 chats, et les duchats doublés.', req:{ach:15, earned:1500}}
 ];
 const roomById = id => ROOMS.find(r => r.id === id) || ROOMS[0];
 
@@ -132,8 +164,13 @@ const ACH = [
   {id:'coins500',  name:'Bourse pleine',       desc:'Gagner 500 duchats au total.',                        reward:50,  prog:(s, g) => [g.earned, 500]},
   {id:'coins2000', name:'Duchats à gogo',      desc:'Gagner 2000 duchats au total.',                       reward:150, prog:(s, g) => [g.earned, 2000]},
   {id:'coats8',    name:'Collectionneur',      desc:'Débloquer 8 pelages.',                                reward:60,  prog:(s, g) => [g.coats.length, 8]},
+  {id:'friends',   name:'Meilleurs amis',      desc:'Deux chats deviennent meilleurs amis.',               reward:40,  test:(s, g) => Object.values(g.rel || {}).some(v => v >= 70)},
+  {id:'prefs',     name:'Je te connais par cœur', desc:'Découvrir les trois préférences d’un chat.',       reward:40,  test:(s, g) => g.cats.some(c => c.known && c.known.toy && c.known.food && c.known.spot)},
+  {id:'tricks3',   name:'Dresseur',            desc:'Apprendre 3 tours à tes chats.',                      reward:50,  prog:(s, g) => [g.cats.reduce((n, c) => n + TRICKS.filter(t => (c.tricks || {})[t.id] >= t.sessions).length, 0), 3]},
+  {id:'fashion',   name:'Chat-rmant',          desc:'Trois chats portent un accessoire en même temps.',    reward:40,  prog:(s, g) => [g.cats.filter(c => c.acc && Object.values(c.acc).some(Boolean)).length, 3]},
+  {id:'grownup',   name:'Il a bien grandi',    desc:'Un chaton devient adulte.',                           reward:40,  prog:s => [s.grown || 0, 1]},
   {id:'veranda',   name:'Chat-pitre deux',     desc:'Débloquer la Véranda.',                               reward:50,  prog:(s, g) => [g.rooms.includes('veranda') ? 1 : 0, 1]},
   {id:'chateau',   name:'Chat-telain',         desc:'Débloquer le Chat-teau.',                             reward:150, prog:(s, g) => [g.rooms.includes('chateau') ? 1 : 0, 1]},
   {id:'golden',    name:'Défi : Pluie d’or',   desc:'Avoir 5 chats tous au-dessus de 90 de bonheur en même temps. Débloque le pelage Doré.', reward:100, challenge:true, test:(s, g) => g.cats.length >= 5 && g.cats.every(c => c.happy > 90)},
-  {id:'galaxy',    name:'Défi : Chat-stronaute', desc:'Vivre au Chat-teau avec 16 succès réussis. Débloque le pelage Galaxie.', reward:200, challenge:true, test:(s, g) => g.room === 'chateau' && Object.keys(g.ach).length >= 16}
+  {id:'galaxy',    name:'Défi : Chat-stronaute', desc:'Vivre au Chat-teau avec 20 succès réussis. Débloque le pelage Galaxie.', reward:200, challenge:true, test:(s, g) => g.room === 'chateau' && Object.keys(g.ach).length >= 20}
 ];

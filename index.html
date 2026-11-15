@@ -166,7 +166,44 @@ button.listen:hover{background:var(--accent);color:#2a1a10}
 .room-card b{font-family:var(--display);font-size:20px}
 .room-card p{margin:2px 0 6px;color:var(--muted);font-size:13.5px}
 .req{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center;font-size:12.5px;margin-top:4px}
+#roster li[data-sheet]{cursor:pointer;transition:background .15s}
+#roster li[data-sheet]:hover{background:var(--panel-2)}
+#roster li[data-sheet]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.kit{font:800 11px var(--body);font-style:normal;color:var(--rose);background:var(--panel-3);padding:0 6px;border-radius:6px;vertical-align:2px}
+.small{font-size:12.5px}
+.sh-grid{display:grid;grid-template-columns:240px 1fr;gap:18px}
+.sh-side{display:flex;flex-direction:column;gap:8px;min-width:0}
+.sh-side canvas{width:200px;height:200px;align-self:center;background:var(--panel-2);border-radius:16px}
+.sh-side p{margin:0}
+.sh-mood b{color:var(--accent)}
+.gauges{display:grid;gap:6px}
+.gauges label{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:2px}
+.bar.energy i{background:linear-gradient(90deg,#7a8ad8,#a9b8ff)}
+.bar.need i{background:linear-gradient(90deg,#8a9a7a,#c8c08a)}
+.bar.need.warn i{background:linear-gradient(90deg,#e0774a,var(--bad))}
+.sh-main{display:flex;flex-direction:column;gap:14px;min-width:0}
+.sh-main h3{font-family:var(--display);font-size:17px;margin:0 0 6px}
+.kv,.rels,.tricks,.mem{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.kv li{display:flex;justify-content:space-between;gap:10px;background:var(--panel-2);border-radius:10px;padding:7px 12px;font-size:14px}
+.kv li span{color:var(--muted)}
+.kv small{color:var(--muted);font-weight:600}
+.rels li{display:grid;grid-template-columns:1fr auto 90px;gap:10px;align-items:center;background:var(--panel-2);border-radius:10px;padding:7px 12px;font-size:14px}
+.rels em{font-style:normal;font-size:12px;font-weight:800}
+.rels em.good{color:var(--good)}.rels em.bad{color:var(--bad)}
+.rel{position:relative;height:6px;border-radius:6px;background:var(--panel-3)}
+.rel i{position:absolute;top:0;bottom:0;border-radius:6px}
+.rel i.pos{background:var(--good)}.rel i.neg{background:var(--bad)}
+.acc-row{display:flex;flex-wrap:wrap;gap:10px}
+.acc-row label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted);font-weight:700}
+.tricks li{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--panel-2);border-radius:10px;padding:8px 12px}
+.tricks li div{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.tricks small{color:var(--muted);font-size:12px}
+.mem{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
+.mem li{background:var(--panel-2);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column}
+.mem b{font-family:var(--display);font-size:20px;color:var(--accent);line-height:1.1}
+.mem span{font-size:12px;color:var(--muted)}
 @media (max-width:620px){
+  .sh-grid{grid-template-columns:1fr}
   .cr-grid{grid-template-columns:1fr}
   .room-card{grid-template-columns:1fr}
   .card{grid-template-columns:1fr}
@@ -198,6 +235,7 @@ button.listen:hover{background:var(--accent);color:#2a1a10}
         <li><b>Crée ton chat</b> : nom, pelage, voix et caractère.</li>
         <li>La pièce est <b>vide</b> au départ : achète l’essentiel à la <b>boutique</b> (gamelle, eau, litière, croquettes), puis place-le avec <b>Aménager</b>.</li>
         <li><b>Prends soin</b> de tes chats : nourris-les, nettoie les litières, caresse-les, brosse-les, soigne-les s’ils tombent malades.</li>
+        <li>Clique sur la <b>carte d’un chat</b> (sous la pièce) pour voir sa fiche : préférences à découvrir, amis et rivaux, souvenirs, <b>accessoires</b> et <b>tours</b> à lui apprendre avec des friandises.</li>
         <li>Des chats heureux rapportent des <b>duchats</b>, la monnaie du jeu. Dépense-les à la <b>boutique</b> : meilleurs objets, nourriture de qualité, soins, nouveaux pelages.</li>
         <li>Réussis des <b>succès</b> pour débloquer <b>La Véranda</b> puis <b>Le Chat-teau</b>, et les pelages rares grâce aux défis.</li>
         <li>La partie est sauvegardée automatiquement dans ce navigateur.</li>
@@ -233,6 +271,7 @@ button.listen:hover{background:var(--accent);color:#2a1a10}
     <button data-tool="treat" aria-pressed="false"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M3 12c4-6 11-6 15 0-4 6-11 6-15 0zm15 0 4-4v8z"/></svg>Friandise <span id="treatCount" class="count">0</span></button>
     <button id="t-brush" data-tool="brush" aria-pressed="false"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="10" width="11" height="4" rx="2"/><rect x="12" y="6" width="10" height="9" rx="3"/><path d="M13 16v4M15.5 16v4M18 16v4M20.5 16v4" stroke="currentColor" stroke-width="1.4"/></svg>Brosse</button>
     <span class="tool-group"><button data-tool="care" aria-pressed="false"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/></svg>Soigner</button><select id="careSel" aria-label="Soin"></select></span>
+    <button data-tool="trick" aria-pressed="false"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.6 6.2 6.4.5-4.9 4.2 1.5 6.3L12 15.8 6.4 19.2l1.5-6.3L3 8.7l6.4-.5z"/></svg>Tours</button>
     <button data-tool="scoop" aria-pressed="false"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h11v6c0 3-2.5 5-5.5 5S3 14 3 11z"/><rect x="13.5" y="6.5" width="8" height="2.6" rx="1.3"/></svg>Pelle</button>
     <span class="sep"></span>
     <button id="btnDay"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>Jour / nuit</button>
@@ -278,10 +317,35 @@ button.listen:hover{background:var(--accent);color:#2a1a10}
         <span class="lbl">Caractère</span>
         <div id="crTraits" class="chips"></div>
         <small id="crTraitDesc" class="muted"></small>
+        <span class="lbl">Âge</span>
+        <div id="crAges" class="chips"></div>
+        <small id="crAgeDesc" class="muted"></small>
       </div>
     </div>
     <p id="crMsg"></p>
     <div class="sheet-foot"><button id="crCancel" class="ghost">Annuler</button><button id="crAdopt" class="primary">Adopter</button></div>
+  </div>
+</div>
+
+<div id="sheetModal" class="modal" hidden>
+  <div class="sheet wide" role="dialog" aria-modal="true" aria-labelledby="shTitle">
+    <div class="sheet-head"><h2 id="shTitle">Fiche du chat</h2><button class="x" data-close aria-label="Fermer">×</button></div>
+    <div class="sh-grid">
+      <div class="sh-side">
+        <canvas id="shPreview" width="220" height="220"></canvas>
+        <div class="row"><input id="shNameInput" maxlength="14" aria-label="Nom du chat"><button id="shRename" class="ghost">Renommer</button></div>
+        <p id="shSub" class="muted small"></p>
+        <p class="sh-mood">Humeur : <b id="shMood"></b></p>
+        <div id="shGauges" class="gauges"></div>
+      </div>
+      <div class="sh-main">
+        <section><h3>Préférences</h3><ul id="shPrefs" class="kv"></ul></section>
+        <section><h3>Relations</h3><ul id="shRel" class="rels"></ul></section>
+        <section><h3>Accessoires</h3><div id="shAcc" class="acc-row"></div></section>
+        <section><h3>Tours</h3><ul id="shTricks" class="tricks"></ul></section>
+        <section><h3>Souvenirs</h3><ul id="shMem" class="mem"></ul></section>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -303,6 +367,7 @@ button.listen:hover{background:var(--accent);color:#2a1a10}
 <script src="js/data.js"></script>
 <script src="js/audio.js"></script>
 <script src="js/draw.js"></script>
+<script src="js/cat.js"></script>
 <script src="js/game.js"></script>
 <script src="js/ui.js"></script>
 </body>

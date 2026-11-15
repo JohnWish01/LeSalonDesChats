@@ -46,7 +46,8 @@ const HINTS = {
   treat: 'Clique sur un chat pour lui donner une friandise.',
   brush: 'Clique sur un chat pour le brosser.',
   care: 'Choisis un soin, puis clique sur un chat.',
-  scoop: 'Clique sur une litière sale (ou une flaque) pour la nettoyer.'
+  scoop: 'Clique sur une litière sale (ou une flaque) pour la nettoyer.',
+  trick: 'Clique sur un chat pour qu’il fasse un tour qu’il connaît (il gagne des duchats). On apprend les tours depuis sa fiche.'
 };
 function setTool(t){
   tool = t; laser.on = false;
@@ -64,6 +65,11 @@ function mood(c){
   if (c.state === 'sleep') return ['Fait la sieste', 'zzz'];
   if (c.state === 'fight') return c.fight && c.fight.phase === 'brawl' ? ['Se bagarre !', 'bad'] : c.fight && c.fight.phase === 'scuffle' ? ['Se chamaille', 'bad'] : ['Se toise', 'bad'];
   if (c.state === 'flee') return ['Vexé', 'bad'];
+  if (c.state === 'rub') return ['Se frotte à toi', 'good'];
+  if (c.state === 'groomFriend') return ['Fait la toilette d’un ami', 'good'];
+  if (c.state === 'tosnuggle') return ['Va se blottir', ''];
+  if (c.state === 'trick') return ['Fait un tour !', 'good'];
+  if (c.anim && c.anim.type === 'groom') return ['Fait sa toilette', ''];
   if (c.state === 'chase') return ['Chasse !', 'good'];
   if (c.state === 'crazy') return ['Fou de joie !', 'good'];
   if (c.state === 'toy') return ['Joue', 'good'];
@@ -87,9 +93,54 @@ function renderRoster(){
   $('rosterTitle').textContent = `Tes chats (${G.cats.length}/${room.maxCats})`;
   $('roster').innerHTML = G.cats.length ? G.cats.map((c, i) => {
     const [m, k] = mood(c);
-    return `<li><span class="sw" style="background:${c.coat.base}"></span><div class="who"><b>${esc(c.name)}</b><small>${esc(c.coat.label)} · ${esc(traitById(c.traitId).label)} · voix ${esc(voiceDef(c.voice).label.toLowerCase())}</small></div><span class="mood ${k}">${m}</span><button class="listen" data-cat="${i}" aria-label="Écouter ${esc(c.name)}" title="Écouter ${esc(c.name)}">♪</button>
+    return `<li data-sheet="${i}" tabindex="0" role="button" aria-label="Fiche de ${esc(c.name)}"><span class="sw" style="background:${c.coat.base}"></span><div class="who"><b>${esc(c.name)}${c.kitten ? ' <em class="kit">chaton</em>' : ''}</b><small>${esc(c.coat.label)} · ${esc(traitById(c.traitId).label)} · voix ${esc(voiceDef(c.voice).label.toLowerCase())}</small></div><span class="mood ${k}">${m}</span><button class="listen" data-cat="${i}" aria-label="Écouter ${esc(c.name)}" title="Écouter ${esc(c.name)}">♪</button>
       <div class="bars"><label>Bonheur<span class="bar"><i style="width:${Math.round(c.happy)}%"></i></span></label><label>Santé<span class="bar health"><i style="width:${Math.round(c.health)}%"></i></span></label></div></li>`;
   }).join('') : '<li class="empty">Pas encore de chat. Clique sur « Adopter » pour en accueillir un.</li>';
+  if (sheetCat) renderSheetLive();
+}
+
+/* ---------- fiche du chat ---------- */
+let sheetCat = null;
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+function openSheet(c){ sheetCat = c; renderSheetStatic(); renderSheetLive(); showModal('sheetModal'); }
+function renderSheetStatic(){
+  const c = sheetCat; if (!c) return;
+  $('shNameInput').value = c.name;
+  const age = c.kitten ? `Chaton, ${Math.round((c.grow || 0) * 100)} % grandi` : `${Math.max(1, Math.ceil(G.clock - c.born))} jour(s) avec toi`;
+  $('shSub').textContent = `${c.coat.label} · ${traitById(c.traitId).label} · voix ${voiceDef(c.voice).label.toLowerCase()} · ${age}`;
+  $('shAcc').innerHTML = SLOTS.map(([slot, label]) => {
+    const cur = c.acc[slot];
+    const opts = ACCESSORIES.filter(a => a.slot === slot && ((G.accInv[a.id] || 0) > 0 || a.id === cur));
+    return `<label>${label}<select data-slot="${slot}"><option value="">Aucun</option>${opts.map(a => `<option value="${a.id}" ${a.id === cur ? 'selected' : ''}>${esc(a.name)}${a.id === cur ? '' : ` (${G.accInv[a.id]})`}</option>`).join('')}</select></label>`;
+  }).join('') + (ACCESSORIES.some(a => (G.accInv[a.id] || 0) > 0 || Object.values(c.acc).includes(a.id)) ? '' : '<p class="muted small">Achète des accessoires à la boutique (onglet Accessoires).</p>');
+  $('shTricks').innerHTML = TRICKS.map(tr => {
+    const n = Math.min(c.tricks[tr.id] || 0, tr.sessions), done = n >= tr.sessions;
+    return `<li><div><b>${esc(tr.name)}</b><small>${done ? `Appris ! Rapporte ${tr.reward} ${COIN} à chaque démonstration.` : `${n} / ${tr.sessions} séances`}</small>${done ? '' : `<span class="bar"><i style="width:${n / tr.sessions * 100}%"></i></span>`}</div>${done ? '<span class="tag ok">Appris</span>' : `<button class="buy" data-train="${tr.id}">Entraîner (1 friandise)</button>`}</li>`;
+  }).join('') + `<p class="muted small">Friandises en stock : ${G.care.treat || 0}</p>`;
+}
+function renderSheetLive(){
+  const c = sheetCat; if (!c) return;
+  if (!G.cats.includes(c)){ closeModal(); return; }
+  $('shMood').textContent = mood(c)[0];
+  $('shGauges').innerHTML = [['Bonheur', c.happy, ''], ['Santé', c.health, 'health'], ['Énergie', c.energy, 'energy'], ['Faim', c.hunger, 'need'], ['Soif', c.thirst, 'need'], ['Envie de litière', c.bladder, 'need']]
+    .map(([l, v, k]) => `<label>${l}<span class="bar ${k}${k === 'need' && v > 70 ? ' warn' : ''}"><i style="width:${Math.round(v)}%"></i></span></label>`).join('');
+  $('shPrefs').innerHTML = ['toy', 'food', 'spot'].map(k => {
+    const v = k === 'toy' ? c.favToy : k === 'food' ? c.favFood : c.favSpot;
+    return `<li><span>${PREF_TITLE[k]}</span><b>${c.known[k] ? esc(cap(PREF_LABEL[k][v])) : '??? <small>à découvrir</small>'}</b></li>`;
+  }).join('');
+  const others = G.cats.filter(o => o !== c).map(o => [o, relOf(c, o)]).sort((a, b) => b[1] - a[1]);
+  $('shRel').innerHTML = others.length ? others.map(([o, v]) => `<li><span>${esc(o.name)}</span><em class="${v >= 35 ? 'good' : v <= -30 ? 'bad' : ''}">${relLabel(v)}</em><span class="rel"><i style="left:${v >= 0 ? 50 : 50 + v / 2}%;width:${Math.abs(v) / 2}%" class="${v >= 0 ? 'pos' : 'neg'}"></i></span></li>`).join('') : '<li class="muted">Pas encore d’autre chat.</li>';
+  const m = c.mem;
+  $('shMem').innerHTML = [['Caresses', m.pets], ['Repas', m.meals], ['Chasses au laser', m.laser], ['Coups de patte aux jouets', m.toys], ['Oiseaux guettés', m.birds], ['Brossages', m.brushes], ['Tours montrés', m.tricks], ['Bagarres', m.fights]]
+    .map(([l, v]) => `<li><b>${v}</b><span>${l}</span></li>`).join('');
+}
+function equip(c, slot, id){
+  const prev = c.acc[slot];
+  if (prev) G.accInv[prev] = (G.accInv[prev] || 0) + 1;
+  if (id){ if ((G.accInv[id] || 0) <= 0) return; G.accInv[id]--; }
+  c.acc[slot] = id || null;
+  renderSheetStatic(); saveGame();
+  if (id){ c.happy = Math.min(100, c.happy + 3); say(c, pick(['Mrrp ?', 'Miaou !'])); }
 }
 
 /* ---------- aménagement ---------- */
@@ -220,13 +271,16 @@ function onDown(e){
   }
   const c = catAt(p);
   if (!c){ showHint(HINTS[tool]); return; }
-  if (tool === 'treat') giveTreat(c);
+  if (tool === 'trick') showTrick(c);
+  else if (tool === 'treat') giveTreat(c);
   else if (tool === 'brush') brushCat(c);
   else if (tool === 'care') applyCare(c);
 }
 function onMove(e){
   if (!G || screen !== 'game') return;
   const p = pos(e);
+  if (Math.hypot(p.x - pointer.x, p.y - pointer.y) > 6) pointer.movedAt = performance.now();
+  pointer.x = p.x; pointer.y = p.y; pointer.on = true;
   if (buildMode){
     ghost.x = p.x; ghost.y = p.y; ghost.on = true;
     if (dragging){
@@ -246,11 +300,11 @@ function onUp(e){
 /* ---------- fenêtres ---------- */
 let openModal = null;
 function showModal(id){ closeModal(); openModal = id; $(id).hidden = false; const f = $(id).querySelector('[data-autofocus]') || $(id).querySelector('button'); if (f) f.focus(); }
-function closeModal(){ if (!openModal) return; $(openModal).hidden = true; if (openModal === 'creatorModal') creatorOpen = false; openModal = null; }
+function closeModal(){ if (!openModal) return; $(openModal).hidden = true; if (openModal === 'creatorModal') creatorOpen = false; if (openModal === 'sheetModal') sheetCat = null; openModal = null; }
 
 /* ---------- boutique ---------- */
 let shopTab = 'meubles';
-const TABS = [['meubles', 'Meubles'], ['jouets', 'Jouets'], ['deco', 'Déco'], ['food', 'Nourriture'], ['care', 'Soins'], ['coats', 'Pelages']];
+const TABS = [['meubles', 'Meubles'], ['jouets', 'Jouets'], ['deco', 'Déco'], ['food', 'Nourriture'], ['care', 'Soins'], ['acc', 'Accessoires'], ['coats', 'Pelages']];
 function openShop(tab){ if (tab) shopTab = tab; renderShop(); showModal('shopModal'); }
 function priceTag(n){ return `<span class="price">${COIN_SVG}${n}</span>`; }
 function renderShop(){
@@ -262,6 +316,11 @@ function renderShop(){
     cards = FOODS.map(f => card({kind: 'food', id: f.id, name: f.name, desc: f.desc, price: f.price, owned: `${G.food[f.id] || 0} portion(s) en stock`}));
   } else if (shopTab === 'care'){
     cards = CARES.map(c => card({kind: 'care', id: c.id, name: c.name, desc: c.desc, price: c.price, owned: c.once ? (G.brush ? 'Déjà achetée' : '') : `${G.care[c.id] || 0} en stock`, done: c.once && G.brush}));
+  } else if (shopTab === 'acc'){
+    cards = ACCESSORIES.map(a => {
+      const worn = G.cats.filter(c => Object.values(c.acc).includes(a.id)).length;
+      return card({kind: 'acc', id: a.id, name: a.name, desc: `${a.desc} À mettre depuis la fiche d’un chat.`, price: a.price, owned: `${G.accInv[a.id] || 0} en stock${worn ? `, ${worn} porté(s)` : ''}`});
+    });
   } else {
     cards = COATS.map(co => {
       const has = G.coats.includes(co.id), ch = co.challenge && ACH.find(a => a.id === co.challenge);
@@ -273,6 +332,7 @@ function renderShop(){
     const [k, id] = cnv.dataset.prev.split(':');
     if (k === 'item') renderItemPreview(cnv, id);
     else if (k === 'coat') renderCatPreview(cnv, coatById(id), 1.3);
+    else if (k === 'acc') renderAccPreview(cnv, id);
     else drawProductIcon(cnv, k, id);
   });
   updateHUD();
@@ -287,6 +347,7 @@ function buy(kind, id){
   if (kind === 'item'){ const d = ITEMS[id]; if (!spend(d.price)) return; G.inv[id] = (G.inv[id] || 0) + 1; toast('Acheté !', `${d.name} : à placer avec Aménager.`); }
   else if (kind === 'food'){ const f = foodById(id); if (!spend(f.price)) return; G.food[id] = (G.food[id] || 0) + f.pack; }
   else if (kind === 'care'){ const c = CARES.find(x => x.id === id); if (!spend(c.price)) return; if (c.once) G.brush = true; else G.care[id] = (G.care[id] || 0) + c.pack; }
+  else if (kind === 'acc'){ const a = ACC[id]; if (!spend(a.price)) return; G.accInv[id] = (G.accInv[id] || 0) + 1; toast('Acheté !', `${a.name} : mets-le à un chat depuis sa fiche (clique sur sa carte).`); }
   else if (kind === 'coat'){ const co = coatById(id); if (G.coats.includes(id) || !spend(co.price)) return; G.coats.push(id); toast('Nouveau pelage', `${co.label} est disponible pour tes prochains chats.`); }
   buySound(); updateToolbar(); renderShop(); if (buildMode) renderBuildBar(); saveGame();
 }
@@ -325,12 +386,12 @@ function drawProductIcon(cnv, kind, id){
 
 /* ---------- création de chat ---------- */
 let creatorOpen = false;
-const cr = {name: '', coatId: 'roux', voiceId: 'classic', voice: null, traitId: 'calin', first: false};
+const cr = {name: '', coatId: 'roux', voiceId: 'classic', voice: null, traitId: 'calin', first: false, kitten: false};
 function adoptCost(){ return G.adoptions < 2 ? 0 : 40; }
 function openCreator(first){
   const room = roomById(G.room);
   if (!first && G.cats.length >= room.maxCats){ errorSound(); showHint(`${room.name} est complet (${room.maxCats} chats). Débloque une plus grande pièce !`, 6000); return; }
-  cr.first = first; cr.name = ''; cr.coatId = pick(G.coats); cr.voiceId = pick(VOICES).id; cr.voice = makeVoice(cr.voiceId); cr.traitId = pick(TRAITS).id;
+  cr.first = first; cr.name = ''; cr.kitten = false; cr.coatId = pick(G.coats); cr.voiceId = pick(VOICES).id; cr.voice = makeVoice(cr.voiceId); cr.traitId = pick(TRAITS).id;
   $('crName').value = ''; $('crName').placeholder = pick(NAMES);
   $('crCancel').hidden = first;
   $('crTitle').textContent = first ? 'Ton premier chat' : 'Adopter un chat';
@@ -344,6 +405,8 @@ function renderCreator(){
   $('crVoices').innerHTML = VOICES.map(v => `<button class="chip${cr.voiceId === v.id ? ' on' : ''}" data-voice="${v.id}">♪ ${esc(v.label)}</button>`).join('');
   $('crTraits').innerHTML = TRAITS.map(t => `<button class="chip${cr.traitId === t.id ? ' on' : ''}" data-trait="${t.id}" title="${esc(t.desc)}">${esc(t.label)}</button>`).join('');
   $('crTraitDesc').textContent = traitById(cr.traitId).desc;
+  $('crAges').innerHTML = [[false, 'Adulte'], [true, 'Chaton']].map(([k, l]) => `<button class="chip${cr.kitten === k ? ' on' : ''}" data-kitten="${k}">${l}</button>`).join('');
+  $('crAgeDesc').textContent = cr.kitten ? 'Plus petit et très joueur, il grandit en 3 jours de jeu.' : 'Un chat adulte, prêt à s’installer.';
   const co = coatById(cr.coatId), has = G.coats.includes(co.id), cost = adoptCost();
   $('crCoatName').textContent = co.label;
   const un = $('crUnlock');
@@ -356,7 +419,10 @@ function adoptFromCreator(){
   const co = coatById(cr.coatId), cost = adoptCost();
   if (!G.coats.includes(co.id) || !spend(cost)) return;
   const name = ($('crName').value.trim() || $('crName').placeholder).slice(0, 14);
-  const c = makeCat({name, coatId: co.id, voice: cr.voice, traitId: cr.traitId});
+  const voice = Object.assign({}, cr.voice); if (cr.kitten) voice.pitch *= 1.25;
+  const c = makeCat({name, coatId: co.id, voice, traitId: cr.traitId, kitten: cr.kitten});
+  if (cr.kitten){ c.lazy = Math.max(0, c.lazy - .2); c.energy = 100; }
+  for (const o of G.cats) G.rel[relKey(c, o)] = Math.round(rand(-15, 25) - (c.traitId === 'susceptible' || o.traitId === 'susceptible' ? 10 : 0));
   c.x = W + 30; c.y = rand(minY(), H - 18); c.tx = rand(W * .5, W - 60); c.ty = c.y; c.state = 'wander';
   G.cats.push(c); G.adoptions++;
   closeModal(); renderRoster(); saveGame();
@@ -464,7 +530,7 @@ function init(){
   cv.addEventListener('pointerdown', onDown);
   cv.addEventListener('pointermove', onMove);
   cv.addEventListener('pointerup', onUp);
-  cv.addEventListener('pointerleave', () => { ghost.on = false; if (tool === 'laser') laser.on = false; });
+  cv.addEventListener('pointerleave', () => { ghost.on = false; pointer.on = false; if (tool === 'laser') laser.on = false; });
   document.addEventListener('pointerdown', () => { if (soundOn) audio(); }, {capture: true});
   window.addEventListener('resize', () => { resize(); if (openModal === 'roomsModal') renderRooms(); });
   window.addEventListener('pagehide', saveGame);
@@ -501,7 +567,15 @@ function init(){
 
   function listen(e){ const b = e.target.closest('[data-cat]'); if (!b) return; const c = G.cats[+b.dataset.cat]; if (!c) return; audio(); setTimeout(() => say(c, pick(voiceDef(c.voice).words)), 40); }
   $('roster').addEventListener('pointerdown', listen);
-  $('roster').addEventListener('click', e => { if (e.detail === 0) listen(e); });
+  $('roster').addEventListener('click', e => {
+    if (e.target.closest('[data-cat]')){ if (e.detail === 0) listen(e); return; }
+    const li = e.target.closest('[data-sheet]'); if (li && G.cats[+li.dataset.sheet]) openSheet(G.cats[+li.dataset.sheet]);
+  });
+  $('roster').addEventListener('keydown', e => { if (e.key !== 'Enter' && e.key !== ' ') return; const li = e.target.closest('[data-sheet]'); if (li && !e.target.closest('[data-cat]')){ e.preventDefault(); openSheet(G.cats[+li.dataset.sheet]); } });
+  $('shRename').addEventListener('click', () => { const v = $('shNameInput').value.trim().slice(0, 14); if (sheetCat && v){ sheetCat.name = v; renderSheetStatic(); renderRoster(); saveGame(); toast('Nouveau nom', `Ton chat s’appelle maintenant ${v}.`); } });
+  $('shAcc').addEventListener('change', e => { const s = e.target.closest('[data-slot]'); if (s && sheetCat) equip(sheetCat, s.dataset.slot, s.value); });
+  $('shTricks').addEventListener('click', e => { const b = e.target.closest('[data-train]'); if (b && sheetCat){ trainTrick(sheetCat, b.dataset.train); renderSheetStatic(); } });
+  $('crAges').addEventListener('click', e => { const b = e.target.closest('[data-kitten]'); if (b){ cr.kitten = b.dataset.kitten === 'true'; renderCreator(); } });
 
   document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', closeModal));
   document.querySelectorAll('.modal').forEach(m => m.addEventListener('pointerdown', e => { if (e.target === m && !(m.id === 'creatorModal' && cr.first)) closeModal(); }));

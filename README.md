@@ -13,6 +13,17 @@ Joue directement en ligne sur https://johnwish01.github.io/LeSalonDesChats/
 
 La partie est sauvegardée automatiquement dans le navigateur.
 
+## Chaque chat est unique
+
+- **Une fiche par chat** (clique sur sa carte) : humeur, jauges, âge, souvenirs.
+- **Des préférences secrètes** (jouet, plat et endroit préférés) à découvrir en jouant.
+- **Des amitiés et des rivalités** : les amis dorment collés et se font la toilette, les rivaux se chamaillent.
+- **Des chatons** qui grandissent en trois jours de jeu.
+- **Des accessoires** : colliers, nœud papillon, bandana, chapeau, béret, fleur, couronne, lunettes.
+- **Des tours** à apprendre avec des friandises (assis, donne la patte, high-five), qui rapportent des duchats.
+- **Des expressions et des poses** : toilette, bâillement, étirement, position pain, sieste sur le dos, oreilles en arrière quand il est fâché…
+- Ils **suivent ta souris des yeux** et viennent parfois **se frotter** à ta main.
+
 ## Ce que font les chats tout seuls
 
 Ils se promènent, font la sieste (et ronflent), mangent, boivent, vont à la litière, grimpent aux arbres à chat,
@@ -26,6 +37,7 @@ Chaque chat a sa propre voix, et tous les sons sont synthétisés en direct, san
 - `index.html` : la page et les styles
 - `js/data.js` : pelages, voix, objets, nourriture, soins, pièces et succès
 - `js/audio.js` : tous les sons
-- `js/draw.js` : le dessin des chats, des objets et des pièces
+- `js/draw.js` : le dessin des objets et des pièces
+- `js/cat.js` : le dessin des chats (poses, expressions, accessoires)
 - `js/game.js` : la simulation, l'économie et la sauvegarde
 - `js/ui.js` : l'interface (écran titre, boutique, création de chat, aménagement…)

@@ -280,6 +280,23 @@ function brushSound(){
   for (let k = 0; k < 3; k++){ const f = noiseBurst(a, t + k * .13, .12, 'bandpass', 3000, .8, .05); f.frequency.setValueAtTime(2000, t + k * .13); f.frequency.linearRampToValueAtTime(4500, t + k * .13 + .12); }
 }
 
+function yawnSound(c){
+  if (!ready()) return; const a = actx, t = a.currentTime, p = c ? c.voice.pitch : 1, d = .9;
+  const o = a.createOscillator(), f = a.createBiquadFilter(), g = a.createGain();
+  o.type = 'sawtooth'; o.frequency.setValueAtTime(420 * p, t); o.frequency.linearRampToValueAtTime(560 * p, t + d * .3); o.frequency.exponentialRampToValueAtTime(220 * p, t + d);
+  f.type = 'lowpass'; f.frequency.setValueAtTime(1600 * p, t); f.frequency.linearRampToValueAtTime(500, t + d);
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.06, t + .15); g.gain.exponentialRampToValueAtTime(.001, t + d);
+  o.connect(f).connect(g).connect(a.destination); o.start(t); o.stop(t + d + .05);
+}
+function groomSound(){
+  if (!ready()) return; const a = actx, t = a.currentTime;
+  noiseBurst(a, t, .07, 'bandpass', 2600, 1.5, .025); noiseBurst(a, t + .12, .07, 'bandpass', 2400, 1.5, .02);
+}
+function bellJingle(){
+  if (!ready()) return; const a = actx, t = a.currentTime;
+  for (let j = 0; j < 2; j++){ const f = rand(4200, 5600); tone(a, t + j * .05, 'sine', f, f, .18, .012); }
+}
+
 /* ---------- interface ---------- */
 function coinSound(){
   if (!ready()) return; const a = actx, t = a.currentTime;
